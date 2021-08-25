@@ -22,7 +22,7 @@ def printgrid(g):
             elif cell==False: print(' ', end='')
         print('>')
 
-def moves(grid, x, y):
+def Knightmoves(grid, x, y):
     g=deepcopy(grid)
     for dy in range(y-2, y+3):
         for dx in range(x-2, x+3):
@@ -31,7 +31,20 @@ def moves(grid, x, y):
                 g[dy][dx]=True
     return g
 
+def BishopMoves(grid, x, y):
+    g = deepcopy(grid)
+    print('Bishop at', x, y)
+    for k in range(0, 8):
+        if 0<=y-(x-k)<8:
+            print('cell', k, '%d-(%d-%d) ='%(y, x, k),y-(x-k))
+            g[k][y-(x-k)] = True
+        if 0<=y+(x-k)<8:
+            print('cell', k, '%d+(%d-%d) ='%(y, x, k), y+(x-k))
+            g[k][y+(x-k)] = True
+    return g
+
 grid = [[False for x in range(8)] for x in range(8)]
 printgrid(grid)
 for x in range(7, -1, -1):
-    printgrid(moves(grid, x, x))
+    # printgrid(Knightmoves(grid, x, x))
+    printgrid(BishopMoves(grid, x, x))

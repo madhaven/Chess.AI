@@ -92,65 +92,37 @@ class Chess:
             if x<7: ops += [(x+1, y+d)]
 
         elif piece[1] == 'R':
-            for k in range(1, x+1): #left 0-
-                if self.board[y][x-k]==None or self.board[y][x-k][0]!=current_side: ops+=[(x-k, y)]
-                else: break
-            for k in range(1, 8-y): #bottom -7
-                if self.board[y+k][x]==None or self.board[y+k][x][0]!=current_side: ops+=[(x, y+k)]
-                else: break
-            for k in range(1, 8-x): #right 7-
-                if self.board[y][x+k]==None or self.board[y][x+k][0]!=current_side: ops+=[(x+k, y)]
-                else: break
-            for k in range(1, y+1): #top -0
-                if self.board[y-k][x]==None or self.board[y-k][x][0]!=current_side: ops+=[(x, y-k)]
-                else: break
+            for k in range(0, 8):
+                ops.append((k, y))
+                ops.append((x, k))
+            ops.remove((x, y))
 
-        elif [1] == 'N':
+        elif piece[1] == 'N':
             ops = [
                 self.board[dy][dx] for dy in range(y-2, y+3) for dx in range(x-2, x+3)
-                if 0<=dx<8 and 0<=dy<8 and dx!=x and dy!=y and \
-                abs(dx-x)!=abs(dy-y) and self.board[dy][dx][0]!=current_side
+                if 0<=dx<8 and 0<=dy<8 and dx!=x and dy!=y and abs(dx-x)!=abs(dy-y)
             ]
 
         elif piece[1] == 'B':
-            for k in range(1, min(x, y)+1): #top-left 00
-                if self.board[y-k][x-k]==None or self.board[y-k][x-k][0]!=current_side: ops+=[(x-k, y-k)]
-                else: break
-            for k in range(1, min(x, 7-y)+1): #bottom-left 07
-                if self.board[y+k][x-k]==None or self.board[y+k][x-k][0]!=current_side: ops+=[(x-k, y+k)]
-                else: break
-            for k in range(1, min(7-x, 7-y)+1): #bottom-right 77
-                if self.board[y+k][x+k]==None or self.board[y+k][x+k][0]!=current_side: ops+=[(x+k, y+k)]
-                else: break
-            for k in range(1, min(7-x, y)+1): #top right 70
-                if self.board[y-k][x+k]==None or self.board[y-k][x+k][0]!=current_side: ops+=[(x+k, y-k)]
-                else: break
+            for k in range(0, 8):
+                if 0 <= y-(x-k) < 8:
+                    ops.append((k, y-(x-k)))
+                if 0 <= y+(x-k) < 8:
+                    ops.append((k, y+(x-k)))
 
         elif piece[1] == 'Q':
-            return self.movesOf(x, y, current_side+'B') + self.movesOf(x, y, current_side+'R')
+            return self.legalMoves(x, y, current_side+'B') + self.legalMoves(x, y, current_side+'R')
 
         elif piece[1] == 'K':
             ops = [
                 (dx, dy) for dy in range(y-1, y+2)
                 for dx in range(x-1, x+2)
-                if 0<=dy<8 and 0<=dx<8 and
-                (self.board[dy][dx] and self.board[dy][dx][0]!=current_side)
+                if 0<=dy<8 and 0<=dx<8
             ] - [(x, y)]
             # castling
-            lasMove_begins = [move[0] for move in self.allMoves]
             kingMoved = self.wKingMoved if current_side=='w' else self.bKingMoved
-            if not kingMoved and not self.isCheck():
-                if (0, y) not in lasMove_begins and \
-                self.board[y][1]==self.board[y][2]==self.board[y][3]==None and \
-                not self.makeMove((4, y), (3, y)).isCheck():
-                    ops += [(2, y)]
-                if (7, y) not in lasMove_begins and  \
-                self.board[y][5]==self.board[y][6]==None and \
-                not self.makeMove((4, y), (5, y)).isCheck():
-                    ops += [(6, y)]
+            if not kingMoved: ops+=[(x+2, y), (x-2, y)]
 
-        # validate pinned moves
-        # return [option for option in ops if not self.board.makeMove((x,y), option).isCheck(current_side)]
         return ops
     
     def movesOf(self, cell, piece=None):
@@ -172,83 +144,78 @@ class Chess:
 
             for op in moves:
                 lastMove = self.allMoves[-1]
-                if ((not self.board[op[1]][op[0]] or # empty cell
+                if (((not self.board[op[1]][op[0]] or # empty cell
                 self.board[op[1]][op[0]][0] != current_side) and # oponent in cell
-                (abs(op[1]-y)==1 or self.board[y+d][x]==self.board[y+2*d][x]==None) or # first move
+                (abs(op[1]-y)==1 or self.board[y+d][x]==self.board[y+2*d][x]==None)) or # first move vals
                 (((d==1 and y==4 and lastMove[0][1]==6) or (d==-1 and y==3 and lastMove[0][1]==1)) \
                 and abs(lastMove[0][0]-x)==1 and lastMove[0][0]==lastMove[1][0] and lastMove[1][1]==y)): #en passant
                     ops.append(op)
-            if self.board[y+d][x] == None:
-                ops += [(x, y+d)]
-                if (d==1 and y==1) or (d==-1 and y==6) and self.board[y+2*d][x] == None:
-                    ops += [(x, y+d*2)]
-            #en passant
-            lastMove = self.allMoves[-1]
-            if ((d==1 and y==4 and lastMove[0][1]==6) or (d==-1 and y==3 and lastMove[0][1]==1)) \
-                and abs(lastMove[0][0]-x)==1 and lastMove[0][0]==lastMove[1][0] and lastMove[1][1]==y:
-                ops += [(lastMove[0][0], y+d)]
 
         elif piece[1] == 'R':
-            for k in range(1, x+1): #left 0-
-                if self.board[y][x-k]==None or self.board[y][x-k][0]!=current_side: ops+=[(x-k, y)]
-                else: break
-            for k in range(1, 8-y): #bottom -7
-                if self.board[y+k][x]==None or self.board[y+k][x][0]!=current_side: ops+=[(x, y+k)]
-                else: break
-            for k in range(1, 8-x): #right 7-
-                if self.board[y][x+k]==None or self.board[y][x+k][0]!=current_side: ops+=[(x+k, y)]
-                else: break
-            for k in range(1, y+1): #top -0
-                if self.board[y-k][x]==None or self.board[y-k][x][0]!=current_side: ops+=[(x, y-k)]
-                else: break
+            e, w, n, s = x, x, y, y # saves the longest distance a rook can go
+            for d in range(1, 8):
+                if e==x and x+d<8 and self.board[y][x+d]:
+                    if self.board[y][x+d][0]!=current_side: e=x+d
+                    elif self.board[y][x+d][0]==current_side: e=x+d-1
+                if w==x and x-d>=0 and self.board[y][x-d]:
+                    if self.board[y][x-d][0]!=current_side: w=x-d
+                    elif self.board[y][x-d][0]==current_side: w=x-d+1
+                if s==y and y+d<8 and self.board[y+d][x]:
+                    if self.board[y+d][x][0]!=current_side: s=y+d
+                    elif self.board[y+d][x][0]==current_side: s=y+d-1
+                if n==y and y-d>=0 and self.board[y-d][x]:
+                    if self.board[y-d][x][0]!=current_side: n=y-d
+                    elif self.board[y-d][x][0]==current_side: n=y-d+1
+            ops = [op for op in moves if w<=op[0]<=e and n<=op[1]<=s]
 
-        elif [1] == 'N':
-            ops = [
-                self.board[dy][dx] for dy in range(y-2, y+3) for dx in range(x-2, x+3)
-                if 0<=dx<8 and 0<=dy<8 and dx!=x and dy!=y and \
-                abs(dx-x)!=abs(dy-y) and self.board[dy][dx][0]!=current_side
-            ]
+        elif piece[1] == 'N':
+            ops = [op for op in moves if self.board[op[0]][op[1]][0]!=current_side]
 
         elif piece[1] == 'B':
-            for k in range(1, min(x, y)+1): #top-left 00
-                if self.board[y-k][x-k]==None or self.board[y-k][x-k][0]!=current_side: ops+=[(x-k, y-k)]
-                else: break
-            for k in range(1, min(x, 7-y)+1): #bottom-left 07
-                if self.board[y+k][x-k]==None or self.board[y+k][x-k][0]!=current_side: ops+=[(x-k, y+k)]
-                else: break
-            for k in range(1, min(7-x, 7-y)+1): #bottom-right 77
-                if self.board[y+k][x+k]==None or self.board[y+k][x+k][0]!=current_side: ops+=[(x+k, y+k)]
-                else: break
-            for k in range(1, min(7-x, y)+1): #top right 70
-                if self.board[y-k][x+k]==None or self.board[y-k][x+k][0]!=current_side: ops+=[(x+k, y-k)]
-                else: break
+            ne, nw, se, sw = 0, 0, 0, 0 # saves the longest distance a bishop can go
+            for d in range(1, 8):
+                if ne==0 and 0<=x+d<8 and 0<=y-d<8 and self.board[y-d][x+d]:
+                    if self.board[y-d][x+d][0]!=current_side: ne=d
+                    elif self.board[y-d][x+d][0]==current_side: ne=d-1
+                if nw==0 and 0<=x-d<8 and 0<=y-d<8 and self.board[y-d][x-d]:
+                    if self.board[y-d][x-d][0]!=current_side: nw=d
+                    elif self.board[y-d][x-d][0]==current_side: nw=d-1
+                if se==0 and 0<=x+d<8 and 0<=y+d<8 and self.board[y+d][x+d]:
+                    if self.board[y+d][x+d][0]!=current_side: se=d
+                    elif self.board[y+d][x+d][0]==current_side: se=d-1
+                if sw==0 and 0<=x-d<8 and 0<=y+d<8 and self.board[y+d][x-d]:
+                    if self.board[y+d][x-d][0]!=current_side: sw=d
+                    elif self.board[y+d][x-d][0]==current_side: sw=d-1
+            ops = [
+                op for op in moves
+                if (x+ne>=op[0]>x and y-ne<=op[1]<y)
+                or (x-nw<=op[0]<x and y-nw<=op[1]<y)
+                or (x+se>=op[0]>x and y+se>=op[1]>y)
+                or (x-se<=op[0]<x and y+sw>=op[1]>y)
+            ]
 
         elif piece[1] == 'Q':
             return self.movesOf(x, y, current_side+'B') + self.movesOf(x, y, current_side+'R')
 
         elif piece[1] == 'K':
-            ops = [
-                (dx, dy) for dy in range(y-1, y+2)
-                for dx in range(x-1, x+2)
-                if 0<=dy<8 and 0<=dx<8 and
-                (self.board[dy][dx] and self.board[dy][dx][0]!=current_side)
-            ] - [(x, y)]
-            # castling
-            lasMove_begins = [move[0] for move in self.allMoves]
-            kingMoved = self.wKingMoved if current_side=='w' else self.bKingMoved
-            if not kingMoved and not self.isCheck():
-                if (0, y) not in lasMove_begins and \
-                self.board[y][1]==self.board[y][2]==self.board[y][3]==None and \
-                not self.makeMove((4, y), (3, y)).isCheck():
-                    ops += [(2, y)]
-                if (7, y) not in lasMove_begins and  \
-                self.board[y][5]==self.board[y][6]==None and \
-                not self.makeMove((4, y), (5, y)).isCheck():
-                    ops += [(6, y)]
+            kingMoved = self.hasMoved((4, 7)) if current_side=='w' else self.hasMoved((4, 0))
+            for op in moves:
+                if op[0]-x in (1, -1) and (
+                    not self.board[op[1]][op[0]]
+                    or self.board[op[1]][op[0]][0]!=current_side):
+                    ops.append(op)
+                elif not kingMoved and not self.isCheck(): # castling conditions
+                    if op[0]-x == 2 and not self.hasMoved((7, y)) and \
+                    self.board[y][5]==self.board[y][6]==None and \
+                    not self.makeMove((4, y), (5, y)).isCheck() :
+                        ops += [(6, y)]
+                    elif op[0]-x == -2 and not self.hasMoved((0, y)) and \
+                    self.board[y][1]==self.board[y][2]==self.board[y][3]==None and \
+                    not self.makeMove((4, y), (3, y)).isCheck() :
+                        ops += [(2, y)]
 
         # validate pinned moves
-        # return [option for option in ops if not self.board.makeMove((x,y), option).isCheck(current_side)]
-        return ops
+        return [option for option in ops if not self.board.makeMove((x,y), option).isCheck(current_side)]
     
     def canTake(game, cell, target):
         '''Returns a boolean that tells if a piece in a cell can acquire/take the target cell in a move'''
@@ -260,6 +227,15 @@ class Chess:
             {ch:i for i, ch in enumerate('abcdefgh')}[string[0].lower()],
             8-int(string[1])
         )
+    
+    def hasMoved(game, cell):
+        '''Returns a boolean that tells wether or not a move has been made from the cell during the game'''
+        if type(cell)==str: x, y = game.getCoords(cell)
+        else: x, y = cell[0], cell[1]
+        for move in game.allMoves:
+            if move[0] == cell:
+                return True
+        return False
     
     def makeMove(game, oldCell, newCell):
         '''Returns an instance of the board after having made the move'''
