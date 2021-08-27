@@ -43,8 +43,12 @@ def BishopMoves(grid, x, y):
             g[k][y+(x-k)] = True
     return g
 
-grid = [[False for x in range(8)] for x in range(8)]
-printgrid(grid)
-for x in range(7, -1, -1):
-    # printgrid(Knightmoves(grid, x, x))
-    printgrid(BishopMoves(grid, x, x))
+# grid = [[False for x in range(8)] for x in range(8)]
+# printgrid(grid)
+# for x in range(7, -1, -1):
+#     # printgrid(Knightmoves(grid, x, x))
+#     printgrid(BishopMoves(grid, x, x))
+
+from Chess import Chess
+game = Chess()
+print(game.getMoves())
