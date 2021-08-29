@@ -48,20 +48,19 @@ class Chess:
         '''Returns a boolean specifying if the next player is in check or not. If worb is set to w or b, checking is made for white or black respectively.
         As of now a brute force check is being carried out.
         It would be more computationally efficient to trace enemies from the kings point of view.'''
-        king, enemies = None, []
         if not check_side: check_side = 'w' if game.isWhitesMove else 'b'
         for y, row in enumerate(game.board):
             for x, cell in enumerate(row):
-                if cell:
-                    if cell[0] != check_side: enemies.append((x, y))
-                    elif cell[0] == check_side and cell[1]=='K': king = (x, y)
-        
-        #TODO: del the nex tline
-        # print('CHECKING FOR CHECKS')
+                if game.board[y][x]==check_side+'K':
+                    king=(x, y)
+                    break
 
-        for enemy in enemies:
-            if king in game.checkableMoves(enemy):
-                return True
+        checks = ['P', 'R', 'RQ', 'B', 'BQ', 'N', 'K']
+        for check in checks:
+            for coord in game.checkableMoves(king, check_side+check):
+                cell = game.board[coord[1]][coord[0]]
+                if cell and cell[0]!=check_side and cell[1]==check:
+                    return True
         return False
 
     def getMoves(game, current_side=None):
@@ -279,8 +278,8 @@ class Chess:
         
         if not game.board[oldCell[1]][oldCell[0]] \
         or (game.board[oldCell[1]][oldCell[0]][0]=='w' and not game.isWhitesMove) \
-        or (game.board[oldCell[1]][oldCell[0]][0]=='b' and game.isWhitesMove) \
-        or newCell not in game.movesOf(oldCell): return game
+        or (game.board[oldCell[1]][oldCell[0]][0]=='b' and game.isWhitesMove):
+            return game
 
         g = deepcopy(game)
         current_side = game.board[oldCell[1]][oldCell[0]][0]
