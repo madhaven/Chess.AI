@@ -258,7 +258,7 @@ class Chess:
             8-int(string[1])
         )
     
-    def getCell(game, cell):
+    def getNotation(game, cell):
         '''Accepts a duplet cell location and returns a string notation of the cell'''
         return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
@@ -319,7 +319,7 @@ class Chess:
         filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
         with open(filename, 'w') as file:
             for i, log in enumerate(game.log):
-                file.write('%d %s-%s\n'%(i+1, game.getCell(log[0]), game.getCell(log[1])))
+                file.write('%d %s-%s\n'%(i+1, game.getNotation(log[0]), game.getNotation(log[1])))
         #TODO: add refined notation with piece info and promotion and takes
         return filename
     
