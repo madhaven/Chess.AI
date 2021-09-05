@@ -2,7 +2,7 @@ from Chess import Chess
 import pygame
 
 #globals
-WINDIM = (600, 600)
+WINDIM = (1000, 500)
 CENTER = (WINDIM[0]//2, WINDIM[1]//2)
 BOARDSIDE = 480
 CELLSIDE = BOARDSIDE//8
@@ -28,11 +28,22 @@ def log(label, *s, wait=False):
         print(*s)
         if wait: input()
 
-def blitText(msg, center, font, color):
+def blitText(msg, center, color, font=FONTSMALL):
     text = font.render(msg, True, color)
     cellRect = text.get_rect()
     cellRect.center = center
     DISPLAY.blit(text, cellRect)
+
+def saveGameButton(game, x, y, bgcol, col):
+    l, w = 60, 25
+    mouse = pygame.mouse.get_pos()
+    if x-l < mouse[0] < x+l and y-w < mouse[1] < y+w:
+        bgcol = (bgcol[0]+50, bgcol[1]+50, bgcol[2]+50)
+        if pygame.mouse.get_pressed()[0]:
+            game.save()
+    pygame.draw.rect(DISPLAY, bgcol, (x-l, y-w, 2*l, 2*w))
+    blitText('Save Game', (x,y), col)
+
 
 def drawBoard(game:Chess, center, boardSide:int):
     cellSide = boardSide//8
@@ -47,7 +58,7 @@ def drawBoard(game:Chess, center, boardSide:int):
 
             # display Piece
             if game.board[bcell[1]][bcell[0]]:
-                blitText(game.board[bcell[1]][bcell[0]], (center[0]-x*cellSide+cellSide/2, center[1]-y*cellSide+cellSide/2), FONTSMALL, col)
+                blitText(game.board[bcell[1]][bcell[0]], (center[0]-x*cellSide+cellSide/2, center[1]-y*cellSide+cellSide/2), col, FONTSMALL)
     pygame.draw.rect(DISPLAY, GREY, 
         (center[0]-boardSide//2-BORDER3, center[1]-boardSide//2-BORDER3, boardSide+BORDER3*2, boardSide+BORDER3*2),
         BORDER3)
@@ -101,6 +112,7 @@ def main():
                 log(celllogs, cell)
                     
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
+        saveGameButton(game, (WINDIM[0]-BOARDSIDE)/4, (WINDIM[0]-BOARDSIDE)/4, GREY, BLACK)
         drawSelectedCell(cell)
         if boardState == 'waitingForSelection':
             if cell: drawOptions(game, cell)
