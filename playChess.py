@@ -46,6 +46,7 @@ def saveGameButton(game, x, y, bgcol, col):
 
 
 def drawBoard(game:Chess, center, boardSide:int):
+    '''Draws the Board, the pieces'''
     cellSide = boardSide//8
     for x in range(4, -4, -1):
         for y in range(4, -4, -1): # for each cell to be blited
@@ -63,15 +64,16 @@ def drawBoard(game:Chess, center, boardSide:int):
         (center[0]-boardSide//2-BORDER3, center[1]-boardSide//2-BORDER3, boardSide+BORDER3*2, boardSide+BORDER3*2),
         BORDER3)
 
-def drawSelectedCell(cell):
+def markActiveCell(cell):
+    '''Draws a border on the active cell'''
     x, y = CENTER[0]-BOARDSIDE/2+CELLSIDE*(cell[0]+.05), CENTER[1]-BOARDSIDE/2+CELLSIDE*(cell[1]+.05)
     pygame.draw.rect(DISPLAY, OFFWHITE, (x, y, CELLSIDE*.9, CELLSIDE*.9), BORDER1)
 
 def drawOptions(game, cell):
-    # print options if mouse over valid cell
+    '''draw available options of cell'''
     x, y = cell[0], cell[1]
     if not game.board[y][x]: return
-    elif ( game.isWhitesMove and game.board[y][x][0]=='w' or not game.isWhitesMove and game.board[y][x][0]=='b'):
+    elif ((game.isWhitesMove and game.board[y][x][0]=='w') or (not game.isWhitesMove and game.board[y][x][0]=='b')):
         moves = game.movesOf((x,y))
     else:
         moves = game.legalMoves((x, y))
@@ -83,42 +85,46 @@ def drawOptions(game, cell):
 def main():
     game = Chess()
     boardState='waitingForSelection'
-    cell = [7, 7]
+    activeCell = [7, 7]
     move = [None, None]
     while True:
         events = pygame.event.get()
         for event in events:
+            # event handling
             # print(event)
             if event.type==pygame.QUIT:
                 pygame.quit()
                 quit()
             elif event.type==pygame.MOUSEMOTION:
                 x, y=((event.pos[0]-(CENTER[0]-BOARDSIDE//2))//CELLSIDE, (event.pos[1]-(CENTER[1]-BOARDSIDE//2))//CELLSIDE)
-                if 0<=x<=7 and 0<=y<=7 and cell!=[x, y]:
-                    cell=[x, y]
-                    log(celllogs, cell)
+                if 0<=x<=7 and 0<=y<=7 and activeCell!=[x, y]:
+                    activeCell=[x, y]
+                    log(celllogs, 'activeCell : %s'%activeCell)
             elif event.type==pygame.MOUSEBUTTONUP:
                 x, y=((event.pos[0]-(CENTER[0]-BOARDSIDE//2))//CELLSIDE, (event.pos[1]-(CENTER[1]-BOARDSIDE//2))//CELLSIDE)
-                if not move[0]: move[0] = [x, y] if 0<=x<=7 and 0<=y<=7 else None
+                if not move[0]: move[0] = [x, y] if 0<=x<=7 and 0<=y<=7 and game.board[activeCell[1]][activeCell[0]] else None
                 else: move[1] = [x, y] if 0<=x<=7 and 0<=y<=7 else None
-            elif cell and event.type==pygame.KEYUP: # keyboard
-                if event.key==pygame.K_DOWN and cell[1]<7: cell[1] += 1
-                elif event.key==pygame.K_UP and cell[1]>0: cell[1] -= 1
-                elif event.key==pygame.K_LEFT and cell[0]>0: cell[0] -= 1
-                elif event.key==pygame.K_RIGHT and cell[0]<7: cell[0] += 1
+            elif activeCell and event.type==pygame.KEYUP: # keyboard
+                if event.key==pygame.K_DOWN and activeCell[1]<7: activeCell[1] += 1
+                elif event.key==pygame.K_UP and activeCell[1]>0: activeCell[1] -= 1
+                elif event.key==pygame.K_LEFT and activeCell[0]>0: activeCell[0] -= 1
+                elif event.key==pygame.K_RIGHT and activeCell[0]<7: activeCell[0] += 1
                 elif event.key==pygame.K_SPACE:
-                    if not move[0]: move[0] = cell
-                    else: move[1] = cell
-                log(celllogs, cell)
-                    
+                    if not move[0]: 
+                        if game.board[activeCell[1]][activeCell[0]]: move[0] = activeCell
+                    else: move[1] = activeCell
+                log(celllogs, 'activeCell : %s'%activeCell)
+        
+        # Game Logic to events
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
         saveGameButton(game, (WINDIM[0]-BOARDSIDE)/4, (WINDIM[0]-BOARDSIDE)/4, GREY, BLACK)
-        drawSelectedCell(cell)
+        markActiveCell(activeCell)
         if boardState == 'waitingForSelection':
-            if cell: drawOptions(game, cell)
+            if activeCell: 
+                validMoves = drawOptions(game, activeCell)
             if move[0]:
                 boardState = 'waitingForMove'
-                log(celllogs, boardState, cell, move)
+                log(celllogs, boardState, activeCell, move)
         elif boardState == 'waitingForMove':
             validMoves = drawOptions(game, move[0])
             if move[1]:
@@ -126,8 +132,7 @@ def main():
                     game = game.makeMove(move[0], move[1])
                 move=[None, None]
                 boardState = 'waitingForSelection'
-                log(celllogs, boardState, cell, move)
-        
+                log(celllogs, boardState, activeCell, move)
         pygame.display.update()
         CLOCK.tick(FPS)
 

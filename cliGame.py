@@ -10,7 +10,8 @@ while (game.gameOver()==False):
         print(game, end='')
         move = input('next move : ')
         if 'save' in move.lower(): game.save()
-        else:game = game.makeMove(*move.split())
+        elif 'exit' in move.lower(): break
+        else: game = game.makeMove(*move.split())
     except:
         print('An error occured. The game log has been saved to '+game.save())
 input()
