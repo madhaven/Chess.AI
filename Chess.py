@@ -223,11 +223,11 @@ class Chess:
             if not kingMoved and not game.isCheck():
                 if not game.hasMoved((7, y)) and \
                 game.board[y][5]==game.board[y][6]==None and \
-                not game.makeMove((4, y), (5, y)).isCheck() :
+                not game.makeMove((4, y), (5, y)).isCheck(current_side) :
                     moves.append((6, y))
-                elif  not game.hasMoved((0, y)) and \
+                if not game.hasMoved((0, y)) and \
                 game.board[y][1]==game.board[y][2]==game.board[y][3]==None and \
-                not game.makeMove((4, y), (3, y)).isCheck() :
+                not game.makeMove((4, y), (3, y)).isCheck(current_side) :
                     moves.append((2, y))
 
         # ensure proposed move doesn't have a friendly piece on it and don't result in check
@@ -285,7 +285,15 @@ class Chess:
             # TODO: add game points for en passant
         
         #castling
-        # TODO: shift rooks position in castling
+        if g.board[oldCell[1]][oldCell[0]][1]=='K' and not g.hasMoved(oldCell): # castling
+            if oldCell[0]-newCell[0] == 2: #queenside
+                if not g.hasMoved((0, oldCell[1])):
+                    g.board[oldCell[1]][3]=current_side+'R'
+                    g.board[oldCell[1]][0]=None
+            elif oldCell[0]-newCell[0] == -2: #kingside
+                if not g.hasMoved((7, oldCell[1])):
+                    g.board[oldCell[1]][5]=current_side+'R'
+                    g.board[oldCell[1]][7]=None
     
         g.board[newCell[1]][newCell[0]] = g.board[oldCell[1]][oldCell[0]]
         g.board[oldCell[1]][oldCell[0]] = None

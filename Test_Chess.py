@@ -68,20 +68,52 @@ def testEnPassant():
     game = game.makeMove('f7', 'f5'); print(game)
     print('movesOf(e5) :', game.movesOf('e5'))
     game = game.makeMove('e5', 'f6'); print(game)
+def testCastling():
+    global game
+    game = game.makeMove('e2', 'e4')
+    game = game.makeMove('e7', 'e5')
+    game = game.makeMove('f2', 'f4')
+    game = game.makeMove('f7', 'f5')
+    game = game.makeMove('g2', 'g4')
+    game = game.makeMove('g7', 'g5')
+    game = game.makeMove('h2', 'h4')
+    game = game.makeMove('h7', 'h5')
+    game = game.makeMove('d2', 'd4')
+    game = game.makeMove('d7', 'd5')
+    game = game.makeMove('c2', 'c4')
+    game = game.makeMove('c7', 'c5')
+    game = game.makeMove('b2', 'b4')
+    game = game.makeMove('b7', 'b5')
+    game = game.makeMove('a2', 'a4')
+    game = game.makeMove('a7', 'a5')
+    game = game.makeMove('b1', 'c3')
+    game = game.makeMove('b8', 'c6')
+    game = game.makeMove('c1', 'a3')
+    game = game.makeMove('c8', 'a6')
+    game = game.makeMove('d1', 'd3')
+    game = game.makeMove('d8', 'd6')
+    game = game.makeMove('f1', 'h3')
+    game = game.makeMove('f8', 'h6')
+    game = game.makeMove('g1', 'f3')
+    game = game.makeMove('g8', 'f6'); print(game)
+def testCastleCheck():
+    global game
+    game = game.makeMove('d2','d4')
+    game = game.makeMove('d7','d5')
+    game = game.makeMove('c1','g5')
+    game = game.makeMove('e7','e6')
+    game = game.makeMove('b1','c3')
+    game = game.makeMove('d8','g5')
+    game = game.makeMove('d1','d3')
+    game = game.makeMove('g5','g6')
+    game = game.makeMove('d3','c4')
+    game = game.makeMove('g6','d3'); print(game)
 
 import code
 game = Chess(); print(game)
 # testRook()
 # testBishop()
-testEnPassant()
+# testEnPassant()
+# testCastling()
+testCastleCheck()
 code.interact(banner='', local=dict(globals(), **locals()), exitmsg='')
-
-# grid = [[False for x in range(8)] for x in range(8)]
-# printgrid(grid)
-# for x in range(7, -1, -1):
-#     # printgrid(Knightmoves(grid, x, x))
-#     printgrid(BishopMoves(grid, x, x))
-
-
-
-
