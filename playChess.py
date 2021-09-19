@@ -1,14 +1,24 @@
 from Chess import Chess
 import pygame
+from os import sep
+
+WINDIM = (1000, 500)
+pygame.init()
+pygame.display.set_caption('Chess')
+DISPLAY = pygame.display.set_mode(WINDIM)
+CLOCK = pygame.time.Clock()
+FONTSMALL = pygame.font.SysFont(None, 25)
 
 #globals
-WINDIM = (1000, 500)
 CENTER = (WINDIM[0]//2, WINDIM[1]//2)
 BOARDSIDE = 480
 CELLSIDE = BOARDSIDE//8
 FPS = 60
 BLACK = (0,0,0)
+# GREYDARK = (84, 84, 84)
+GREYDARK = (64, 64, 64)
 GREY = (128, 128, 128)
+GREYLIGHT = (170, 170, 170)
 GREEN = (0, 255, 0)
 GREYTRANS = (128, 128, 128, 128)
 OFFWHITE = (180, 180, 180)
@@ -16,11 +26,10 @@ WHITE = (255, 255, 255)
 WHITETRANS = (255, 255, 255, 128)
 BORDER1, BORDER2, BORDER3 = 1, 2, 3
 
-pygame.init()
-pygame.display.set_caption('Chess')
-DISPLAY = pygame.display.set_mode(WINDIM)
-CLOCK = pygame.time.Clock()
-FONTSMALL = pygame.font.SysFont(None, 25)
+loadPiece = lambda p: pygame.image.load(sep.join(['.','assets','pieces',p]))
+for piece in ['WP', 'BP', 'WK', 'BK', 'WQ', 'BQ', 'WR', 'BR', 'WB', 'BB', 'WN', 'BN']:
+    exec("%s = loadPiece('%s.png')"%(piece, piece))
+    exec("%s.convert()"%piece)
 
 celllogs=False
 def log(label, *s, wait=False):
@@ -54,12 +63,27 @@ def drawBoard(game:Chess, center, boardSide:int):
             # display bg
             bcell = (4-x, 4-y)
             if (x+y)%2==0: bgcol, col = GREY, BLACK #white cell
-            else: bgcol, col = BLACK, GREY #black cell
+            else: bgcol, col = GREYDARK, GREY #black cell
             pygame.draw.rect(DISPLAY, bgcol, (center[0]-x*cellSide, center[1]-y*cellSide, cellSide, cellSide))
 
             # display Piece
             if game.board[bcell[1]][bcell[0]]:
-                blitText(game.board[bcell[1]][bcell[0]], (center[0]-x*cellSide+cellSide/2, center[1]-y*cellSide+cellSide/2), col, FONTSMALL)
+                if game.board[bcell[1]][bcell[0]]=='wP': piece = WP
+                elif game.board[bcell[1]][bcell[0]]=='bP': piece = BP
+                elif game.board[bcell[1]][bcell[0]]=='wK': piece = WK
+                elif game.board[bcell[1]][bcell[0]]=='bK': piece = BK
+                elif game.board[bcell[1]][bcell[0]]=='wQ': piece = WQ
+                elif game.board[bcell[1]][bcell[0]]=='bQ': piece = BQ
+                elif game.board[bcell[1]][bcell[0]]=='wR': piece = WR
+                elif game.board[bcell[1]][bcell[0]]=='bR': piece = BR
+                elif game.board[bcell[1]][bcell[0]]=='wB': piece = WB
+                elif game.board[bcell[1]][bcell[0]]=='bB': piece = BB
+                elif game.board[bcell[1]][bcell[0]]=='wN': piece = WN
+                elif game.board[bcell[1]][bcell[0]]=='bN': piece = BN
+                pr = piece.get_rect()
+                pr.center = (center[0]-x*cellSide+cellSide/2, center[1]-y*cellSide+cellSide/2)
+                DISPLAY.blit(piece, pr)
+                
     pygame.draw.rect(DISPLAY, GREY, 
         (center[0]-boardSide//2-BORDER3, center[1]-boardSide//2-BORDER3, boardSide+BORDER3*2, boardSide+BORDER3*2),
         BORDER3)
