@@ -2,34 +2,41 @@ from copy import deepcopy
 
 class Chess:
     '''Contains all logic for a chess game'''
-    def __init__(self, board=[
+    def __init__(self, choosePiece=None, board=[
             ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'], #a8 - h8
             ['bP' for i in range(8)], [None for i in range(8)], [None for i in range(8)],
             [None for i in range(8)], [None for i in range(8)], ['wP' for i in range(8)],
             ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'], #a1 - h1
         ], log=[], isWhitesMove=True, gameResult=None, wPoints=0, bPoints=0):
-        """intializes the board and sets the state of the board"""
+        """intializes the board and sets the state of the board.
+
+        The choosePiece argument expects a function that returns a character in (Q, R, B, N).
+        This function will be used when a pawn is to be promoted. If choosePiece defaults to None,
+        the pawn will be promoted to Queen."""
         self.board = board
         self.isWhitesMove = isWhitesMove
         self.log = log
-        self.gameResult = gameResult
+        self.result = gameResult
         self.wPoints = wPoints
         self.bPoints = bPoints
+        self.choosePiece = choosePiece if choosePiece else lambda:'Q'
         # TODO : add logic to create game string from all moves
+        # TODO : add static method to initialize game from such a game log
     
     def __str__(game):
         '''prints the board on console'''
-        board = ''
-        for row in game.board:
-            board += '| '
+        string = ''
+        for y, row in enumerate(game.board):
+            string += '%d| '%(8-y)
             for cell in row:
-                if not cell: board+='  '
-                elif cell[0]=='b': board += cell[1].lower()+' '
-                elif cell[0]=='w': board += cell[1].upper()+' '
-            board += '|\n'
-        return board
+                if not cell: string += '  '
+                elif cell[0]=='b': string += cell[1].lower()+' '
+                elif cell[0]=='w': string += cell[1].upper()+' '
+            string += '|\n'
+        string += '   a b c d e f g h\n'
+        return string
     
-    def gameOver(game):
+    def checkResult(game):
         """
         checks for a result from the board.
         1  white won
@@ -39,9 +46,11 @@ class Chess:
         """
         if not game.getMoves():
             if game.isCheck():
-                if game.isWhitesMove: return -1
-                else: return 1
-        else: return 0
+                if game.isWhitesMove: game.result = -1
+                else: game.result = 1
+            else: game.result = 0
+        else: return False
+        return game.result
 
     def isCheck(game, check_side=None):
         '''Returns a boolean specifying if the current player is in check or not.
@@ -223,18 +232,18 @@ class Chess:
             if not kingMoved and not game.isCheck():
                 if not game.hasMoved((7, y)) and \
                 game.board[y][5]==game.board[y][6]==None and \
-                not game.makeMove((4, y), (5, y)).isCheck(current_side) :
+                not game.makeMove((4, y), (5, y), True).isCheck(current_side) :
                     moves.append((6, y))
                 if not game.hasMoved((0, y)) and \
                 game.board[y][1]==game.board[y][2]==game.board[y][3]==None and \
-                not game.makeMove((4, y), (3, y)).isCheck(current_side) :
+                not game.makeMove((4, y), (3, y), True).isCheck(current_side) :
                     moves.append((2, y))
 
         # ensure proposed move doesn't have a friendly piece on it and don't result in check
         finalMoves = [ 
             move for move in moves 
             if (not game.board[move[1]][move[0]] or game.board[move[1]][move[0]][0]!=current_side)
-            and not game.makeMove((x,y), move).isCheck(current_side)
+            and not game.makeMove((x,y), move, True).isCheck(current_side)
         ]
         return finalMoves
     
@@ -258,7 +267,7 @@ class Chess:
                 return True
         return False
     
-    def makeMove(game, oldCell, newCell):
+    def makeMove(game, oldCell, newCell, testMove=False):
         '''Returns an instance of the board after having made the move'''
         if type(oldCell) == str: oldCell = game.coords(oldCell)
         if type(newCell) == str: newCell = game.coords(newCell)
@@ -277,6 +286,7 @@ class Chess:
 
         g = deepcopy(game)
 
+        #en passant
         if len(game.log)>0 and oldCell[1]==(3 if current_side=='w' else 4) and\
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
@@ -285,7 +295,7 @@ class Chess:
             # TODO: add game points for en passant
         
         #castling
-        if g.board[oldCell[1]][oldCell[0]][1]=='K' and not g.hasMoved(oldCell): # castling
+        elif g.board[oldCell[1]][oldCell[0]][1]=='K' and not g.hasMoved(oldCell):
             if oldCell[0]-newCell[0] == 2: #queenside
                 if not g.hasMoved((0, oldCell[1])):
                     g.board[oldCell[1]][3]=current_side+'R'
@@ -294,17 +304,25 @@ class Chess:
                 if not g.hasMoved((7, oldCell[1])):
                     g.board[oldCell[1]][5]=current_side+'R'
                     g.board[oldCell[1]][7]=None
-    
+
+        # the move
         g.board[newCell[1]][newCell[0]] = g.board[oldCell[1]][oldCell[0]]
         g.board[oldCell[1]][oldCell[0]] = None
         g.isWhitesMove = not g.isWhitesMove
-        g.log.append((oldCell, newCell)) # TODO: convert matrix history to string history
-        
+
         #pawn promotion
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
-            g.promotePawn(newCell, g.choosePromotion())
-        # TODO: remove next line
-        # print(g)
+            newPiece = g.choosePiece() if not testMove else 'P'
+            if newPiece in 'RNBQ':
+                print(current_side, newPiece)
+                g.board[newCell[1]][newCell[0]] = current_side + newPiece
+            else: return game
+        # TODO: add promotion to game logs
+
+        #game states
+        g.log.append((oldCell, newCell)) # TODO: convert matrix history to string history
+        if not testMove: g.checkResult()
+        
         return g
     
     def save(game):
@@ -314,25 +332,10 @@ class Chess:
         filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
         with open(filename, 'w') as file:
             for i, log in enumerate(game.log):
-                file.write('%d %s-%s\n'%(i+1, game.notation(log[0]), game.notation(log[1])))
+                file.write('%d. %s-%s\n'%(i+1, game.notation(log[0]), game.notation(log[1])))
         #TODO: add refined notation with piece info and promotion and takes
         return filename
     
     def load(game, filename):
         '''Loads a game state from a file'''
         # TODO: manage file saving formats in accordance with save method
-    
-    def promotePawn(game, cell, newPiece):
-        '''Promotes pawn to newPiece. Contains all logic to represent promotion in the logs.
-        This method is intended to be called just after the move is recorded in the game log.'''
-        if type(cell)==str: cell = game.coords(cell)
-        if cell[1] not in (0, 7): return False
-        if newPiece not in 'RNBQ': return False
-        game.board[cell[1]][cell[0]][1] = newPiece
-        # TODO: add promotion to game logs
-    
-    def choosePromotion(game, promoteTo=None):
-        '''Contains all logic to pass control to the user to return the Piece to promote to
-        Intended to be overriden so that UI could control
-        Expects a character in the set {R, N, B, Q} to be return'''
-        return input('Input chess piece to promote to (R, N, B, Q) : ')

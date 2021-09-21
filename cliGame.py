@@ -5,7 +5,7 @@ while (game.gameOver()==False):
     try:
         print(
             '\nGame State', 'WhitesMove : '+str(game.isWhitesMove),
-            'result : '+str(game.gameResult), 'Log : '+str(game.log), sep='\n'
+            'result : '+str(game.result), 'Log : '+str(game.log), sep='\n'
         )
         print(game, end='')
         move = input('next move : ')
