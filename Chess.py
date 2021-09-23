@@ -5,27 +5,26 @@ class Player:
     def __init__(self, White=True):
         pass
 
-
 class Chess:
     '''Contains all logic for a chess game'''
-    def __init__(self, choosePiece=None, board=[
-            ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'], #a8 - h8
-            ['bP' for i in range(8)], [None for i in range(8)], [None for i in range(8)],
-            [None for i in range(8)], [None for i in range(8)], ['wP' for i in range(8)],
-            ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'], #a1 - h1
-        ], log=[], isWhitesMove=True, gameResult=None, wPoints=0, bPoints=0):
+    def __init__(self, promotion=None, board=None, log=[], isWhitesMove=True, gameResult=None, wPoints=0, bPoints=0):
         """intializes the board and sets the state of the board.
 
         The choosePiece argument expects a function that returns a character in (Q, R, B, N).
         This function will be used when a pawn is to be promoted. If choosePiece defaults to None,
         the pawn will be promoted to Queen."""
-        self.board = board
+        self.board = board if board else [
+            ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'], #a8 - h8
+            ['bP' for i in range(8)], [None for i in range(8)], [None for i in range(8)],
+            [None for i in range(8)], [None for i in range(8)], ['wP' for i in range(8)],
+            ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'], #a1 - h1
+        ] 
         self.isWhitesMove = isWhitesMove
         self.log = log
         self.result = gameResult
         self.wPoints = wPoints
         self.bPoints = bPoints
-        self.choosePiece = choosePiece if choosePiece else lambda:'Q'
+        self.choosePiece = promotion if promotion else lambda:'Q'
         # TODO : add logic to create game string from all moves
         # TODO : add static method to initialize game from such a game log
     
@@ -41,6 +40,14 @@ class Chess:
             string += '|\n'
         string += '   a b c d e f g h\n'
         return string
+    
+    def _coords_(game, string):
+        '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
+        return (ord(string[0].lower())-97, 8-int(string[1]))
+    
+    def _notation_(game, cell):
+        '''Accepts a duplet cell, array location and returns a string notation of the cell'''
+        return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
     def checkResult(game):
         """
@@ -93,7 +100,7 @@ class Chess:
         if piece (PRNBQK) is explicitly specified the rules of that piece would apply.
         This method does not consider the state of the game, only the position of the piece.
         Intended to be used when making PreMoves.'''
-        if type(cell)==str: x, y = self.coords(cell)
+        if type(cell)==str: x, y = self._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
             if not self.board[y][x]: return []
@@ -147,7 +154,7 @@ class Chess:
         This method simply refines the moves from legalMoves according to the game.
         This method Does not however check if the move is completely possible.'''
         
-        if type(cell)==str: x, y = self.coords(cell)
+        if type(cell)==str: x, y = self._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
             if not self.board[y][x]: return []
@@ -204,7 +211,7 @@ class Chess:
     def movesOf(game, cell, piece=None):
         '''implements a check to make sure a piece can move from its current location.
         Also adds special checks for the pawn and the king's moves'''
-        if type(cell)==str: x, y = game.coords(cell)
+        if type(cell)==str: x, y = game._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
             if not game.board[y][x]: return []
@@ -252,17 +259,9 @@ class Chess:
         ]
         return finalMoves
     
-    def coords(game, string):
-        '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
-        return (ord(string[0].lower())-97, 8-int(string[1]))
-    
-    def notation(game, cell):
-        '''Accepts a duplet cell, array location and returns a string notation of the cell'''
-        return 'abcdefgh'[cell[0]]+str(8-cell[1])
-    
     def hasMoved(game, cell):
         '''Returns a boolean that tells wether or not a move has been made from the cell during the game'''
-        if type(cell)==str: x, y = game.coords(cell)
+        if type(cell)==str: x, y = game._coords_(cell)
         else: x, y = cell[0], cell[1]
         for move in game.log:
             if list(move[0]) == list((x, y)):
@@ -270,9 +269,10 @@ class Chess:
         return False
     
     def makeMove(game, oldCell, newCell, testMove=False):
-        '''Returns an instance of the board after having made the move'''
-        if type(oldCell) == str: oldCell = game.coords(oldCell)
-        if type(newCell) == str: newCell = game.coords(newCell)
+        '''Returns an instance of the board after having made the move
+        testMove is intended for blocking user action in case of possible pawn promotions'''
+        if type(oldCell) == str: oldCell = game._coords_(oldCell)
+        if type(newCell) == str: newCell = game._coords_(newCell)
         
         if not game.board[oldCell[1]][oldCell[0]] \
         or (game.board[oldCell[1]][oldCell[0]][0]=='w' and not game.isWhitesMove) \
@@ -314,9 +314,8 @@ class Chess:
 
         #pawn promotion
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
-            newPiece = g.choosePiece() if not testMove else 'P'
+            newPiece = 'Q' if testMove else g.choosePiece()
             if newPiece in 'RNBQ':
-                print(current_side, newPiece)
                 g.board[newCell[1]][newCell[0]] = current_side + newPiece
             else: return game
         # TODO: add promotion to game logs
@@ -334,7 +333,7 @@ class Chess:
         filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
         with open(filename, 'w') as file:
             for i, log in enumerate(game.log):
-                file.write('%d. %s-%s\n'%(i+1, game.notation(log[0]), game.notation(log[1])))
+                file.write('%d. %s-%s\n'%(i+1, game._notation_(log[0]), game._notation_(log[1])))
         #TODO: add refined notation with piece info and promotion and takes
         return filename
     
