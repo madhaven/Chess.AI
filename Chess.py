@@ -1,5 +1,11 @@
 from copy import deepcopy
 
+class Player:
+    '''Contains implementations of a players functionality.'''
+    def __init__(self, White=True):
+        pass
+
+
 class Chess:
     '''Contains all logic for a chess game'''
     def __init__(self, choosePiece=None, board=[
@@ -98,7 +104,7 @@ class Chess:
         if piece[1] == 'P':
             if current_side=='w' and y>0: d=-1
             elif current_side=='b' and y<7: d=1
-            else: return []
+            else: ops = []
             
             ops += [(x, y+d)]
             if (d==1 and y==1) or (d==-1 and y==6): ops += [(x, y+d*2)]
@@ -124,7 +130,7 @@ class Chess:
                     ops.append((k, y+(x-k)))
 
         elif piece[1] == 'Q':
-            return self.legalMoves((x, y), current_side+'B') + self.legalMoves((x, y), current_side+'R')
+            ops = self.legalMoves((x, y), current_side+'B') + self.legalMoves((x, y), current_side+'R')
 
         elif piece[1] == 'K':
             ops = [
@@ -221,13 +227,12 @@ class Chess:
                         moves.append(op)
                     elif len(game.log)>0 and y==(3 if current_side=='w' else 4) and\
                         op[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and\
-                        game.log[-1][0][0]==game.log[-1][1][0]==op[0]:
-                            # en passant
+                        game.log[-1][0][0]==game.log[-1][1][0]==op[0]: # en passant
                             moves.append(op)
         else: moves = game.checkableMoves((x, y), piece)
 
+        # add castling moves
         if piece[1]=='K':
-            # add castling moves
             kingMoved = game.hasMoved((4, 0)) if current_side=='b' else game.hasMoved((4, 7))
             if not kingMoved and not game.isCheck():
                 if not game.hasMoved((7, y)) and \
@@ -249,10 +254,7 @@ class Chess:
     
     def coords(game, string):
         '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
-        return (
-            {ch:i for i, ch in enumerate('abcdefgh')}[string[0].lower()],
-            8-int(string[1])
-        )
+        return (ord(string[0].lower())-97, 8-int(string[1]))
     
     def notation(game, cell):
         '''Accepts a duplet cell, array location and returns a string notation of the cell'''
@@ -263,7 +265,7 @@ class Chess:
         if type(cell)==str: x, y = game.coords(cell)
         else: x, y = cell[0], cell[1]
         for move in game.log:
-            if move[0] == (x,y):
+            if list(move[0]) == list((x, y)):
                 return True
         return False
     
@@ -324,7 +326,7 @@ class Chess:
         if not testMove: g.checkResult()
         
         return g
-    
+
     def save(game):
         '''Saves the log of the game into a text file'''
         from datetime import datetime
