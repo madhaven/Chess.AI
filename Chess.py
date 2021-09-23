@@ -338,6 +338,10 @@ class Chess:
         #TODO: add refined notation with piece info and promotion and takes
         return filename
     
-    def load(game, filename):
-        '''Loads a game state from a file'''
-        # TODO: manage file saving formats in accordance with save method
+    @staticmethod
+    def loadFrom(filename):
+        '''Loads a game state from a file. If printMoves is True, each step will be printed to console'''
+        game=Chess()
+        for move in [line.split()[1].split('-') for line in open(filename, 'r').readlines()]:
+            game = game.makeMove(move[0], move[1])
+        return game
