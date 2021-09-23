@@ -1,13 +1,13 @@
 from Chess import Chess
 
-def testFile(file):
+def testFile(filepath):
     import code
     from os import sep
     game = Chess()
     # testRook()
     # testBishop()
     # testEnPassant()
-    filepath = sep.join(['assets', 'sampleGames', file])
+
     for move in [line.split()[1].split('-') for line in open(filepath, 'r').readlines()]:
         game = game.makeMove(move[0], move[1])
     print(game)
@@ -17,4 +17,4 @@ def testFile(file):
 # testFile('castlingCheck.txt')
 # testFile('gameEnd.txt')
 # testFile('CheckMate.txt')
-testFile('draw.txt')
+testFile(input('Drop your saved Chess game : '))
