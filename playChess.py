@@ -8,6 +8,7 @@ pygame.display.set_caption('Chess')
 DISPLAY = pygame.display.set_mode(WINDIM)
 CLOCK = pygame.time.Clock()
 FONTSMALL = pygame.font.SysFont(None, 25)
+FONTBIG = pygame.font.SysFont(None, 40)
 
 #globals
 CENTER = (WINDIM[0]//2, WINDIM[1]//2)
@@ -37,21 +38,25 @@ def log(label, *s, wait=False):
         print(*s)
         if wait: input()
 
-def blitText(msg, center, color, font=FONTSMALL):
-    text = font.render(msg, True, color)
+def blitText(msg, center=CENTER, col=BLACK, bgcol=GREY, font=FONTSMALL, onclick=None, padding=(25, 12)):
+    text = font.render(msg, True, col)
     cellRect = text.get_rect()
     cellRect.center = center
-    DISPLAY.blit(text, cellRect)
-
-def panel(x, y, bgcol, col, text, onclick=None):
-    l, w = 60, 25
+    bgrect = cellRect.copy()
+    bgrect.left -= padding[0]
+    bgrect.top -= padding[1]
+    bgrect.width += 2*padding[0]
+    bgrect.height += 2*padding[1]
+    
     mouse = pygame.mouse.get_pos()
-    if onclick and x-l < mouse[0] < x+l and y-w < mouse[1] < y+w:
+    if onclick and bgrect.collidepoint(mouse):
         bgcol = (bgcol[0]+50, bgcol[1]+50, bgcol[2]+50)
         if pygame.mouse.get_pressed()[0]:
             onclick()
-    pygame.draw.rect(DISPLAY, bgcol, (x-l, y-w, 2*l, 2*w))
-    blitText(text, (x,y), col)
+
+    pygame.draw.rect(DISPLAY, bgcol, bgrect)
+    DISPLAY.blit(text, cellRect)
+    return cellRect
 
 def drawBoard(game:Chess, center, boardSide:int):
     '''Draws the Board, the pieces'''
@@ -95,26 +100,27 @@ def markActiveCell(cell):
     x, y = CENTER[0]-BOARDSIDE/2+CELLSIDE*(cell[0]+.05), CENTER[1]-BOARDSIDE/2+CELLSIDE*(cell[1]+.05)
     pygame.draw.rect(DISPLAY, OFFWHITE, (x, y, CELLSIDE*.9, CELLSIDE*.9), BORDER1)
 
-def drawOptions(game, cell):
+def drawOptions(options, game: Chess, filled=False):
     '''draw available options of cell'''
-    x, y = cell[0], cell[1]
-    if not game.board[y][x]: return
-    elif ((game.isWhitesMove and game.board[y][x][0]=='w') or (not game.isWhitesMove and game.board[y][x][0]=='b')):
-        moves = game.movesOf((x,y))
-    else:
-        moves = game.legalMoves((x, y))
-    for option in moves:
+    color = WHITE if game.isWhitesMove else BLACK
+    for option in options:
         op_cell = (4-option[0], 4-option[1])
-        pygame.draw.circle(DISPLAY, OFFWHITE, (CENTER[0]-op_cell[0]*CELLSIDE+CELLSIDE/2, CENTER[1]-op_cell[1]*CELLSIDE+CELLSIDE/2), CELLSIDE/9)
-    return moves
+        if filled:
+            pygame.draw.circle(DISPLAY, color, (CENTER[0]-op_cell[0]*CELLSIDE+CELLSIDE/2, CENTER[1]-op_cell[1]*CELLSIDE+CELLSIDE/2), CELLSIDE/9)
+        else:
+            pygame.draw.circle(DISPLAY, color, (CENTER[0]-op_cell[0]*CELLSIDE+CELLSIDE/2, CENTER[1]-op_cell[1]*CELLSIDE+CELLSIDE/2), CELLSIDE/9, BORDER2)
 
-def gameOverScreen(game):
+def gameOverScreen(game:Chess):
+    if game.result == 1: result = 'White Wins'
+    elif game.result == -1: result = 'Black Wins'
+    elif game.result == 0: result = 'Game Draw'
     while True:
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
-        panel((WINDIM[0]-BOARDSIDE)/4, (WINDIM[0]-BOARDSIDE)/4, GREY, BLACK, 'Save Game', game.save)
+        blitText('Save Game', center=((WINDIM[0]-BOARDSIDE)/4, (WINDIM[0]-BOARDSIDE)/4), onclick=game.save)
+        blitText(result, center=(CENTER[0], CENTER[1]), font=FONTBIG, bgcol=BLACK, col=GREY)
         events = pygame.event.get()
         for event in events:
-            if event.type==pygame.QUIT:
+            if event.type in (pygame.QUIT, pygame.MOUSEBUTTONUP):
                 pygame.quit()
                 quit()
         pygame.display.update()
@@ -122,11 +128,10 @@ def gameOverScreen(game):
 
 def main():
     game = Chess()
-    boardState='waitingForSelection'
     activeCell = [7, 7]
     move = [None, None] # keeps track of users selection and move
-    while not game.result:
 
+    while game.result not in [-1, 0, 1]:
         # event handling
         events = pygame.event.get()
         for event in events:
@@ -154,18 +159,27 @@ def main():
         
         # Logic to events
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
-        panel((WINDIM[0]-BOARDSIDE)/4, (WINDIM[0]-BOARDSIDE)/4, GREY, BLACK, 'Save Game', game.save)
+        blitText('Save Game', onclick=game.save, center=((WINDIM[0]-BOARDSIDE)/4, (WINDIM[0]-BOARDSIDE)/4))
         markActiveCell(activeCell)
 
-        if not move[0]: # no cell selected
-            validMoves = drawOptions(game, activeCell)
-        elif move[0]: # cell selected
-            validMoves = drawOptions(game, move[0])
-            if move[1]: # move made
-                if move[1]!=move[0] and tuple(move[1]) in validMoves:
-                    game = game.makeMove(move[0], move[1])
-                    drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
-                move=[None, None]
+        options = []
+        if not move[0]:
+            selectedPiece = game.board[activeCell[1]][activeCell[0]]
+            if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
+                options = game.movesOf(activeCell)
+            drawOptions(options, game)
+        else:
+            selectedPiece = game.board[move[0][1]][move[0][0]]
+            if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
+                options = game.movesOf(move[0])
+            drawOptions(options, game, filled=True)
+        if move[0] and move[1]:
+            print(move[0], move[1], tuple(move[1]), options)
+            if tuple(move[1]) in options and move[1]!=move[0]:
+                game = game.makeMove(move[0], move[1])
+                drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
+            move=[None , None]
+        
         pygame.display.update()
         CLOCK.tick(FPS)
 
