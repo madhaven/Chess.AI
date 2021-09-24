@@ -40,7 +40,6 @@ game = Chess.loadFrom(r'file')
 >>> newGameState = game.makeMove('a2', 'a4')
 
 # to check what state the game is in
-# 1: White wins, 0: Draw, -1: Black wins, None: Game in progress
 >>> result = game.result
 
 #for more help

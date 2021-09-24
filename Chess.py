@@ -54,15 +54,35 @@ class Chess:
         checks for a result from the board.
         1  white won
         -1 black won
-        0  draw
         2  quit
+        3  stalemate
+        4  draw by insufficient material
         """
         if not game.getMoves():
             if game.isCheck():
                 if game.isWhitesMove: game.result = -1
                 else: game.result = 1
-            else: game.result = 0
-        else: game.result = None
+            else: game.result = 3
+        else:
+            bp, wp = [], []
+            for y in range(8):
+                for x in range(8):
+                    piece = game.board[y][x]
+                    if not piece or piece[1]=='K': continue
+                    if piece[0]=='b':
+                        bp.append(piece[1])
+                        if piece[1]=='B': bbcol = (x+y)%2
+                    elif piece[0]=='w':
+                        wp.append(piece[1])
+                        if piece[1]=='B': wbcol = (x+y)%2
+            if bp==wp==[] or \
+                (bp==[] and wp==['B']) or (bp==['B'] and wp==[]) or \
+                (bp==[] and wp==['N']) or (bp==['N'] and wp==[]) or \
+                (bp==wp==['B'] and bbcol==wbcol):
+                game.result = 4
+            else:
+                game.result = None
+
         return game.result
 
     def isCheck(game, check_side=None):

@@ -1,7 +1,6 @@
 from Chess import Chess
 import pygame
 from os import sep
-from time import sleep
 
 WINDIM = (1000, 500)
 pygame.init()
@@ -107,9 +106,11 @@ def drawOptions(options, game: Chess, filled=False):
             pygame.draw.circle(DISPLAY, color, (CENTER[0]-op_cell[0]*CELLSIDE+CELLSIDE/2, CENTER[1]-op_cell[1]*CELLSIDE+CELLSIDE/2), CELLSIDE/9, BORDER2)
 
 def gameOverScreen(game:Chess):
-    if game.result == 1: result = 'White Wins'
-    elif game.result == -1: result = 'Black Wins'
-    elif game.result == 0: result = 'Game Draw'
+    if game.result == -1: result = 'Black Wins'
+    elif game.result == 1: result = 'White Wins'
+    elif game.result == 2: result = 'Game Quit'
+    elif game.result == 3: result = 'Stalemate'
+    elif game.result == 4: result = 'Draw: Insufficient Material'
     while True:
         DISPLAY.fill(BLACK)
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
@@ -121,6 +122,7 @@ def gameOverScreen(game:Chess):
                 pygame.quit()
                 quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                pygame.time.wait(500)
                 return
         pygame.display.update()
         CLOCK.tick(FPS)
@@ -150,7 +152,6 @@ def loadGame():
         for event in events:
             if event.type == pygame.DROPBEGIN:
                 bgcol = GREYDARK
-                print('DROPBEGIN')
             elif event.type in (pygame.DROPFILE, pygame.USEREVENT_DROPFILE):
                 file = event.file
                 txt = 'loading ' + file.split(sep)[-1]
@@ -161,7 +162,6 @@ def loadGame():
                 return
             elif event.type == pygame.DROPCOMPLETE:
                 bgcol = BLACK
-                print('DROPCOMPLETE')
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -172,13 +172,12 @@ def main():
     global game
     activeCell = [7, 7]
     move = [None, None] # keeps track of users selection and move
-    sleep(0.5)
+    pygame.time.wait(500)
 
-    while game.result not in [-1, 0, 1]:
+    while not game.result:
         # event handling
         events = pygame.event.get()
         for event in events:
-            # print(event)
             if event.type==pygame.MOUSEMOTION:
                 x, y=((event.pos[0]-(CENTER[0]-BOARDSIDE//2))//CELLSIDE, (event.pos[1]-(CENTER[1]-BOARDSIDE//2))//CELLSIDE)
                 if 0<=x<=7 and 0<=y<=7 and activeCell!=[x, y]:
@@ -219,7 +218,6 @@ def main():
                 options = game.movesOf(move[0])
             drawOptions(options, game, filled=True)
         if move[0] and move[1]:
-            print(move[0], move[1], tuple(move[1]), options)
             if tuple(move[1]) in options and move[1]!=move[0]:
                 game = game.makeMove(move[0], move[1])
                 drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
@@ -229,7 +227,7 @@ def main():
         CLOCK.tick(FPS)
 
     #Game Over
-    sleep(0.5)
+    pygame.time.wait(500)
     gameOverScreen(game)
 
 if __name__=='__main__':
