@@ -30,7 +30,7 @@ class Chess:
     
     def __str__(game):
         '''prints the board on console'''
-        string = ''
+        string = '\n'
         for y, row in enumerate(game.board):
             string += '%d| '%(8-y)
             for cell in row:
@@ -62,7 +62,7 @@ class Chess:
                 if game.isWhitesMove: game.result = -1
                 else: game.result = 1
             else: game.result = 0
-        else: return False
+        else: game.result = None
         return game.result
 
     def isCheck(game, check_side=None):
@@ -290,7 +290,7 @@ class Chess:
 
         #en passant
         if len(game.log)>0 and oldCell[1]==(3 if current_side=='w' else 4) and\
-            newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and\
+            newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
             # print('enpessant acquired ', g.notation((newCell[0], oldCell[1])), g.board[newCell[0]][oldCell[1]])
             g.board[oldCell[1]][newCell[0]] = None
