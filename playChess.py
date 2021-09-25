@@ -61,26 +61,26 @@ def drawBoard(game:Chess, center, boardSide:int):
             bcell = (4-x, 4-y)
             bgcol = GREY if (x+y)%2==0 else GREYDARK
             if game.isCheck():
-                piece=game.board[4-y][4-x]
+                piece=game.board[4-x,4-y] if (4-x,4-y) in game.board else None
                 if (game.isWhitesMove and piece=='wK') or (not game.isWhitesMove and piece=='bK'):
                     bgcol = RED_CHECK
             pygame.draw.rect(DISPLAY, bgcol, (center[0]-x*CELLSIDE, center[1]-y*CELLSIDE, CELLSIDE, CELLSIDE))
 
             # display Piece
             # exec('piece=%s'%game.board[bcell[1]][bcell[0]].upper()) # doesn't work
-            if game.board[bcell[1]][bcell[0]]:
-                if game.board[bcell[1]][bcell[0]]=='wP': piece = WP
-                elif game.board[bcell[1]][bcell[0]]=='bP': piece = BP
-                elif game.board[bcell[1]][bcell[0]]=='wK': piece = WK
-                elif game.board[bcell[1]][bcell[0]]=='bK': piece = BK
-                elif game.board[bcell[1]][bcell[0]]=='wQ': piece = WQ
-                elif game.board[bcell[1]][bcell[0]]=='bQ': piece = BQ
-                elif game.board[bcell[1]][bcell[0]]=='wR': piece = WR
-                elif game.board[bcell[1]][bcell[0]]=='bR': piece = BR
-                elif game.board[bcell[1]][bcell[0]]=='wB': piece = WB
-                elif game.board[bcell[1]][bcell[0]]=='bB': piece = BB
-                elif game.board[bcell[1]][bcell[0]]=='wN': piece = WN
-                elif game.board[bcell[1]][bcell[0]]=='bN': piece = BN
+            if (bcell[0],bcell[1]) in game.board:
+                if game.board[bcell[0],bcell[1]]=='wP': piece = WP
+                elif game.board[bcell[0],bcell[1]]=='bP': piece = BP
+                elif game.board[bcell[0],bcell[1]]=='wK': piece = WK
+                elif game.board[bcell[0],bcell[1]]=='bK': piece = BK
+                elif game.board[bcell[0],bcell[1]]=='wQ': piece = WQ
+                elif game.board[bcell[0],bcell[1]]=='bQ': piece = BQ
+                elif game.board[bcell[0],bcell[1]]=='wR': piece = WR
+                elif game.board[bcell[0],bcell[1]]=='bR': piece = BR
+                elif game.board[bcell[0],bcell[1]]=='wB': piece = WB
+                elif game.board[bcell[0],bcell[1]]=='bB': piece = BB
+                elif game.board[bcell[0],bcell[1]]=='wN': piece = WN
+                elif game.board[bcell[0],bcell[1]]=='bN': piece = BN
                 pr = piece.get_rect()
                 pr.center = (center[0]-x*CELLSIDE+CELLSIDE/2, center[1]-y*CELLSIDE+CELLSIDE/2)
                 DISPLAY.blit(piece, pr)
@@ -111,6 +111,7 @@ def gameOverScreen(game:Chess):
     elif game.result == 2: result = 'Game Quit'
     elif game.result == 3: result = 'Stalemate'
     elif game.result == 4: result = 'Draw: Insufficient Material'
+    elif game.result == 5: result = 'Three fold repetition'
     while True:
         DISPLAY.fill(BLACK)
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
@@ -184,7 +185,7 @@ def main():
                     activeCell=[x, y]
                     log(celllogs, 'activeCell : %s'%activeCell)
             elif event.type==pygame.MOUSEBUTTONDOWN:
-                if not move[0]: move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
+                if not move[0]: move[0] = activeCell.copy() if (activeCell[0],activeCell[1]) in game.board else None
                 else: move[1] = activeCell.copy()
             elif activeCell and event.type==pygame.KEYDOWN: # keyboard
                 if event.key==pygame.K_DOWN and activeCell[1]<7: activeCell[1] += 1
@@ -192,7 +193,7 @@ def main():
                 elif event.key==pygame.K_LEFT and activeCell[0]>0: activeCell[0] -= 1
                 elif event.key==pygame.K_RIGHT and activeCell[0]<7: activeCell[0] += 1
                 elif event.key==pygame.K_SPACE:
-                    if not move[0]: move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
+                    if not move[0]: move[0] = activeCell.copy() if (activeCell[0],activeCell[1]) in game.board else None
                     else: move[1] = activeCell.copy()
                 log(celllogs, 'activeCell : %s'%activeCell)
             elif event.type==pygame.QUIT:
@@ -208,12 +209,12 @@ def main():
 
         options = []
         if not move[0]:
-            selectedPiece = game.board[activeCell[1]][activeCell[0]]
+            selectedPiece = game.board[activeCell[0],activeCell[1]] if (activeCell[0], activeCell[1]) in game.board else None
             if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
                 options = game.movesOf(activeCell)
             drawOptions(options, game)
         else:
-            selectedPiece = game.board[move[0][1]][move[0][0]]
+            selectedPiece = game.board[move[0][0],move[0][1]]
             if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
                 options = game.movesOf(move[0])
             drawOptions(options, game, filled=True)

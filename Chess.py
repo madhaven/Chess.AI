@@ -5,6 +5,15 @@ class Player:
     def __init__(self, White=True):
         pass
 
+    def chooseMove(self, game):
+        '''Select a move from the available moves in game'''
+        pass
+
+    def choosePromotion(self, game):
+        '''Returns a char (RNBQ) indicating which piece to promote a pawn to'''
+        pass
+    
+
 class Chess:
     '''Contains all logic for a chess game'''
     def __init__(self, promotion=None, board=None, log=[], isWhitesMove=True, gameResult=None, wPoints=0, bPoints=0):
@@ -13,14 +22,19 @@ class Chess:
         The choosePiece argument expects a function that returns a character in (Q, R, B, N).
         This function will be used when a pawn is to be promoted. If choosePiece defaults to None,
         the pawn will be promoted to Queen."""
-        self.board = board if board else [
-            ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'], #a8 - h8
-            ['bP' for i in range(8)], [None for i in range(8)], [None for i in range(8)],
-            [None for i in range(8)], [None for i in range(8)], ['wP' for i in range(8)],
-            ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'], #a1 - h1
-        ] 
+        self.board = board if board else {
+            (0, 0):'bR', (7, 0):'bR', (0, 7):'wR', (7, 7):'wR',
+            (2, 0):'bB', (5, 0):'bB', (2, 7):'wB', (5, 7):'wB',
+            (1, 0):'bN', (6, 0):'bN', (1, 7):'wN', (6, 7):'wN',
+            (3, 0):'bQ', (4, 0):'bK', (3, 7):'wQ', (4, 7):'wK',
+            (0, 1):'bP', (0, 6):'wP', (1, 1):'bP', (1, 6):'wP',
+            (2, 1):'bP', (2, 6):'wP', (3, 1):'bP', (3, 6):'wP',
+            (4, 1):'bP', (4, 6):'wP', (5, 1):'bP', (5, 6):'wP',
+            (6, 1):'bP', (6, 6):'wP', (7, 1):'bP', (7, 6):'wP',
+        }
         self.isWhitesMove = isWhitesMove
         self.log = log
+        self.node_list = []
         self.result = gameResult
         self.wPoints = wPoints
         self.bPoints = bPoints
@@ -31,15 +45,19 @@ class Chess:
     def __str__(game):
         '''prints the board on console'''
         string = '\n'
-        for y, row in enumerate(game.board):
+        for y in range(8):
             string += '%d| '%(8-y)
-            for cell in row:
-                if not cell: string += '  '
-                elif cell[0]=='b': string += cell[1].lower()+' '
-                elif cell[0]=='w': string += cell[1].upper()+' '
+            for x in range(8):
+                if (x,y) not in game.board: string += '  '
+                elif game.board[x,y][0]=='b': string += game.board[x,y][1].lower()+' '
+                elif game.board[x,y][0]=='w': string += game.board[x,y][1].upper()+' '
             string += '|\n'
         string += '   a b c d e f g h\n'
         return string
+    
+    def __eq__(game1, game2):
+        '''Checks if two boards are at the same state. Used for 3-move repetition checks'''
+        return game1.board==game2.board
     
     def _coords_(game, string):
         '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
@@ -57,6 +75,7 @@ class Chess:
         2  quit
         3  stalemate
         4  draw by insufficient material
+        5  three fold repetition
         """
         if not game.getMoves():
             if game.isCheck():
@@ -64,22 +83,17 @@ class Chess:
                 else: game.result = 1
             else: game.result = 3
         else:
-            bp, wp = [], []
-            for y in range(8):
-                for x in range(8):
-                    piece = game.board[y][x]
-                    if not piece or piece[1]=='K': continue
-                    if piece[0]=='b':
-                        bp.append(piece[1])
-                        if piece[1]=='B': bbcol = (x+y)%2
-                    elif piece[0]=='w':
-                        wp.append(piece[1])
-                        if piece[1]=='B': wbcol = (x+y)%2
+            bp = [p for p in game.board.values() if p[0]=='b' and p[1]!='K']
+            wp = [p for p in game.board.values() if p[0]=='w' and p[1]!='K']
+            bbcol = [(x+y)%2 for x, y in game.board if game.board[x,y]=='bB'][0]
+            wbcol = [(x+y)%2 for x, y in game.board if game.board[x,y]=='wB'][0]
             if bp==wp==[] or \
                 (bp==[] and wp==['B']) or (bp==['B'] and wp==[]) or \
                 (bp==[] and wp==['N']) or (bp==['N'] and wp==[]) or \
                 (bp==wp==['B'] and bbcol==wbcol):
                 game.result = 4
+            elif game.node_list.count(game) >= 2:
+                game.result = 5
             else:
                 game.result = None
 
@@ -90,9 +104,9 @@ class Chess:
         If check_side is set to w or b, checking is made for white or black respectively.'''
         # TODO: add parameter to check. so self moves don't need to brute force through options
         if not check_side: check_side = 'w' if game.isWhitesMove else 'b'
-        for y, row in enumerate(game.board):
-            for x, cell in enumerate(row):
-                if game.board[y][x]==check_side+'K':
+        for y in range(8):
+            for x in range(8):
+                if (x,y) in game.board and game.board[x,y]==check_side+'K':
                     king=(x, y)
                     break
             else: continue
@@ -100,19 +114,17 @@ class Chess:
         for checkPiece in ['P', 'RQ', 'BQ', 'N', 'K']:
             for coord in game.checkableMoves(king, check_side+checkPiece[0]):
                 #essentially places a piece in kings cell and finds same enemy pieces in sight
-                piece = game.board[coord[1]][coord[0]]
-                if piece and piece[0]!=check_side and piece[1] in checkPiece:
-                    return True
+                if (coord[0], coord[1]) in game.board:
+                    piece = game.board[coord[0],coord[1]]
+                    if piece[0]!=check_side and piece[1] in checkPiece:
+                        return True
         return False
 
     def getMoves(game, current_side=None):
         '''Returns a list of possible moves (pairs of xy coordinate pairs)'''
         if not current_side: current_side = 'w' if game.isWhitesMove else 'b'
-        pieces = [
-            (x, y) for y, row in enumerate(game.board)
-            for x, cell in enumerate(row) if cell!=None and cell[0]==current_side]
         return [
-            (piece, move) for piece in pieces
+            (piece, move) for piece in game.board
             for move in game.movesOf(piece)]
     
     def legalMoves(self, cell, piece=None):
@@ -123,8 +135,8 @@ class Chess:
         if type(cell)==str: x, y = self._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
-            if not self.board[y][x]: return []
-            else: piece = self.board[y][x]
+            if (x, y) not in self.board: return []
+            else: piece = self.board[x,y]
         current_side = piece[0]
         ops = []
 
@@ -177,8 +189,8 @@ class Chess:
         if type(cell)==str: x, y = self._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
-            if not self.board[y][x]: return []
-            else: piece = self.board[y][x]
+            if (x,y) not in self.board: return []
+            else: piece = self.board[x,y]
         current_side = piece[0]
         ops, moves = [], self.legalMoves((x, y), piece)
 
@@ -190,16 +202,16 @@ class Chess:
         elif piece[1] == 'R':
             for d in range(x+1, 8):
                 ops.append((d, y))
-                if self.board[y][d]: break
+                if (d,y) in self.board: break
             for d in range(x-1, -1, -1):
                 ops.append((d, y))
-                if self.board[y][d]: break
+                if (d,y) in self.board: break
             for d in range(y+1, 8):
                 ops.append((x, d))
-                if self.board[d][x]: break
+                if (x,d) in self.board: break
             for d in range(y-1, -1, -1):
                 ops.append((x, d))
-                if self.board[d][x]: break
+                if (x,d) in self.board: break
 
         elif piece[1] == 'N':
             ops = moves
@@ -207,16 +219,16 @@ class Chess:
         elif piece[1] == 'B':
             for d in range(1, min(8-x, 8-y)):
                 ops.append((x+d, y+d))
-                if self.board[y+d][x+d]: break
+                if (x+d, y+d) in self.board: break
             for d in range(1, min(8-x, y+1)):
                 ops.append((x+d, y-d))
-                if self.board[y-d][x+d]: break
+                if (x+d, y-d) in self.board: break
             for d in range(1, min(x+1, y+1)):
                 ops.append((x-d, y-d))
-                if self.board[y-d][x-d]: break
+                if (x-d, y-d) in self.board: break
             for d in range(1, min(x+1, 8-y)):
                 ops.append((x-d, y+d))
-                if self.board[y+d][x-d]: break
+                if (x-d, y+d) in self.board: break
 
         elif piece[1] == 'Q':
             ops = self.checkableMoves((x, y), current_side+'B') + self.checkableMoves((x, y), current_side+'R')
@@ -234,8 +246,8 @@ class Chess:
         if type(cell)==str: x, y = game._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
-            if not game.board[y][x]: return []
-            else: piece = game.board[y][x]
+            if (x,y) not in game.board: return []
+            else: piece = game.board[x,y]
         
         current_side = piece[0]
         moves = []
@@ -243,14 +255,14 @@ class Chess:
         if piece[1]=='P':
             for op in game.legalMoves((x, y), piece):
                 if op[0]-x == 0: # straight move
-                    if not game.board[op[1]][op[0]]: # empty square
+                    if (op[0], op[1]) not in game.board: # empty square
                         if op[1]-y in (1, -1):
                             moves.append(op) # one step
-                        elif op[1]-y in (2, -2) and not game.board[(op[1]+y)//2][op[0]]:
+                        elif op[1]-y in (2, -2) and (op[0], (op[1]+y)//2) not in game.board:
                             moves.append(op) # two steps and empty path
                 else: # sidemove
-                    if game.board[op[1]][op[0]] and game.board[op[1]][op[0]][0]!=current_side: #takes
-                        ('takes', game.board[y][x], game.board[op[1]][op[0]])
+                    if (op[0],op[1]) in game.board and game.board[op[0],op[1]][0]!=current_side: #takes
+                        ('takes', game.board[x,y], game.board[op[0],op[1]])
                         moves.append(op)
                     elif len(game.log)>0 and y==(3 if current_side=='w' else 4) and\
                         op[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and\
@@ -263,18 +275,18 @@ class Chess:
             kingMoved = game.hasMoved((4, 0)) if current_side=='b' else game.hasMoved((4, 7))
             if not kingMoved and not game.isCheck():
                 if not game.hasMoved((7, y)) and \
-                game.board[y][5]==game.board[y][6]==None and \
+                (5,y) not in game.board and (6,y) not in game.board==None and \
                 not game.makeMove((4, y), (5, y), True).isCheck(current_side) :
                     moves.append((6, y))
                 if not game.hasMoved((0, y)) and \
-                game.board[y][1]==game.board[y][2]==game.board[y][3]==None and \
+                (1,y) not in game.board and (2,y) not in game.board and (3,y) not in game.board and \
                 not game.makeMove((4, y), (3, y), True).isCheck(current_side) :
                     moves.append((2, y))
 
         # ensure proposed move doesn't have a friendly piece on it and don't result in check
         finalMoves = [ 
             move for move in moves 
-            if (not game.board[move[1]][move[0]] or game.board[move[1]][move[0]][0]!=current_side)
+            if ((move[0],move[1]) not in game.board or game.board[move[0],move[1]][0]!=current_side)
             and not game.makeMove((x,y), move, True).isCheck(current_side)
         ]
         return finalMoves
@@ -294,14 +306,14 @@ class Chess:
         if type(oldCell) == str: oldCell = game._coords_(oldCell)
         if type(newCell) == str: newCell = game._coords_(newCell)
         
-        if not game.board[oldCell[1]][oldCell[0]] \
-        or (game.board[oldCell[1]][oldCell[0]][0]=='w' and not game.isWhitesMove) \
-        or (game.board[oldCell[1]][oldCell[0]][0]=='b' and game.isWhitesMove):
+        if (oldCell[0],oldCell[1]) not in game.board \
+        or (game.board[oldCell[0],oldCell[1]][0]=='w' and not game.isWhitesMove) \
+        or (game.board[oldCell[0],oldCell[1]][0]=='b' and game.isWhitesMove):
             return game
 
-        current_side = game.board[oldCell[1]][oldCell[0]][0]
-        if game.board[newCell[1]][newCell[0]]:
-            if game.board[newCell[1]][newCell[0]][0]!=current_side:
+        current_side = game.board[oldCell[0],oldCell[1]][0]
+        if (newCell[0],newCell[1]) in game.board:
+            if game.board[newCell[0],newCell[1]][0]!=current_side:
                 pass # TODO: add points for piece acquired
             else: # cannot move to own piece's square
                 return game
@@ -313,30 +325,31 @@ class Chess:
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
             # print('enpessant acquired ', g.notation((newCell[0], oldCell[1])), g.board[newCell[0]][oldCell[1]])
-            g.board[oldCell[1]][newCell[0]] = None
+            g.board.pop((oldCell[0],newCell[1]))
             # TODO: add game points for en passant
         
         #castling
-        elif g.board[oldCell[1]][oldCell[0]][1]=='K' and not g.hasMoved(oldCell):
+        elif g.board[oldCell[0],oldCell[1]][1]=='K' and not g.hasMoved(oldCell):
             if oldCell[0]-newCell[0] == 2: #queenside
                 if not g.hasMoved((0, oldCell[1])):
-                    g.board[oldCell[1]][3]=current_side+'R'
-                    g.board[oldCell[1]][0]=None
+                    g.board[3, oldCell[1]]=current_side+'R'
+                    g.board.pop((0, oldCell[1]))
             elif oldCell[0]-newCell[0] == -2: #kingside
                 if not g.hasMoved((7, oldCell[1])):
-                    g.board[oldCell[1]][5]=current_side+'R'
-                    g.board[oldCell[1]][7]=None
+                    g.board[5, oldCell[1]]=current_side+'R'
+                    g.board.pop((7, oldCell[1]))
 
         # the move
-        g.board[newCell[1]][newCell[0]] = g.board[oldCell[1]][oldCell[0]]
-        g.board[oldCell[1]][oldCell[0]] = None
+        g.board[newCell[0], newCell[1]] = g.board[oldCell[0],oldCell[1]]
+        g.board.pop((oldCell[0], oldCell[1]))
         g.isWhitesMove = not g.isWhitesMove
+        g.node_list.append(game)
 
         #pawn promotion
-        if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
+        if g.board[newCell[0],newCell[1]][1]=='P' and newCell[1] in (0, 7):
             newPiece = 'Q' if testMove else g.choosePiece()
             if newPiece in 'RNBQ':
-                g.board[newCell[1]][newCell[0]] = current_side + newPiece
+                g.board[newCell[0],newCell[1]] = current_side + newPiece
             else: return game
         # TODO: add promotion to game logs
 
