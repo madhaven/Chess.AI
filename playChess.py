@@ -1,3 +1,4 @@
+from pygame.constants import K_ESCAPE
 from Chess import Chess
 import pygame
 from os import sep
@@ -106,6 +107,7 @@ def drawOptions(options, game: Chess, filled=False):
             pygame.draw.circle(DISPLAY, color, (CENTER[0]-op_cell[0]*CELLSIDE+CELLSIDE/2, CENTER[1]-op_cell[1]*CELLSIDE+CELLSIDE/2), CELLSIDE/9, BORDER2)
 
 def gameOverScreen(game:Chess):
+    pygame.time.wait(500)
     if game.result == -1: result = 'Black Wins'
     elif game.result == 1: result = 'White Wins'
     elif game.result == 2: result = 'Game Quit'
@@ -116,12 +118,13 @@ def gameOverScreen(game:Chess):
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
         blitText('Save Game', center=((WINDIM[0]-BOARDSIDE)/4, WINDIM[1]/2), onclick=game.save)
         blitText(result, center=(CENTER[0], CENTER[1]), font=FONTBIG, bgcol=BLACK, col=GREY)
+        blitText('press escape to go back', center=(CENTER[0], CENTER[1]*1.3), font=FONTSMALL, bgcol=BLACK, col=GREY)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
                 pygame.time.wait(500)
                 return
         pygame.display.update()
@@ -140,14 +143,14 @@ def choosePromotion()->str:
         CLOCK.tick(FPS)
 
 def loadGame():
-    x = []
     global game
     bgcol, col = BLACK, GREY
     txt = 'Drop your saved File here'
     while True:
         DISPLAY.fill(BLACK)
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
-        blitText(txt, CENTER, col, bgcol, FONTBIG)
+        blitText(txt, (CENTER[0], CENTER[1]*0.8), col, bgcol, FONTBIG)
+        blitText('press escape to go back', (CENTER[0], CENTER[1]*1.2), col, bgcol)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.DROPBEGIN:
@@ -162,6 +165,8 @@ def loadGame():
                 return
             elif event.type == pygame.DROPCOMPLETE:
                 bgcol = BLACK
+            elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+                return
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -232,10 +237,10 @@ def main():
 
 if __name__=='__main__':
 
+    game = Chess(promotion=choosePromotion)
     # Main Menu
     while True:
 
-        game = Chess(promotion=choosePromotion)
         DISPLAY.fill(BLACK)
         blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main)
         blitText('Load Game', (CENTER[0], WINDIM[1]*2/3), font=FONTBIG, onclick=loadGame)
