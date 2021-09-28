@@ -18,12 +18,18 @@ class Chess:
         if not gameString:
             self.board = [
                 ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'], #a8 - h8
-                ['bP' for i in range(8)], [None for i in range(8)], [None for i in range(8)],
-                [None for i in range(8)], [None for i in range(8)], ['wP' for i in range(8)],
+                ['bP']*8, [None]*8, [None]*8, [None]*8, [None]*8, ['wP']*8,
                 ['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'], #a1 - h1
             ]
-            self.isWhitesMove,self.result,self.wPoints,self.bPoints,self.choosePiece,self.log,self.gameString =\
-            True, None, 0, 0, promotion if promotion else lambda:'Q', [], ''
+            self.isWhitesMove = True
+            self.result = None
+            self.wPoints = 0
+            self.bPoints = 0
+            self.choosePiece = promotion if promotion else lambda:'Q'
+            self.log = []
+            self.gameString = ''
+            self.history = []
+            self.fiftyCounter = 0
         else:
             game = Chess(promotion=promotion)
             for i, move in enumerate(gameString.split()):
@@ -35,7 +41,16 @@ class Chess:
                     a = a[1:3] if a[0].isupper() else a[:2]
                     b = b[1:3] if b[0].isupper() else b[:2]
                     game = game.makeMove(a, b, promoteTo=promoteToPiece)
-            self.board, self.isWhitesMove, self.result, self.wPoints, self.bPoints, self.choosePiece, self.log, self.gameString = game.board, game.isWhitesMove, game.result, game.wPoints, game.bPoints, game.choosePiece, game.log, game.gameString
+            self.board = game.board
+            self.isWhitesMove = game.isWhitesMove
+            self.result = game.result
+            self.wPoints = game.wPoints
+            self.bPoints = game.bPoints
+            self.choosePiece = game.choosePiece
+            self.log = game.log
+            self.gameString = game.gameString
+            self.history = game.history
+            self.fiftyCounter = game.fiftyCounter
     
     def __str__(game):
         '''prints the board on console'''
@@ -58,6 +73,23 @@ class Chess:
         '''Accepts a duplet cell, array location and returns a string notation of the cell'''
         return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
+    def _FEN_(game):
+        '''Returns a Forsyth–Edwards Notation (FEN) of the board without game information.
+        Saving boards as strings is expected to speed up history checks when compared to arrays.'''
+        fen = ''
+        for row in game.board:
+            emptyCells = 0
+            for cell in row:
+                if not cell: emptyCells += 1
+                else: 
+                    if emptyCells:
+                        fen += str(emptyCells)
+                        emptyCells = 0
+                    fen += cell[1].upper() if cell[0]=='w' else cell[1].lower()
+            if emptyCells: fen += str(emptyCells)
+            fen += '/'
+        return fen[:-1]
+    
     def checkResult(game):
         """
         checks for a result from the board.
@@ -66,13 +98,20 @@ class Chess:
         2  quit
         3  stalemate
         4  draw by insufficient material
+        5  three-fold repetition
+        6  fifty-move rule
         """
-        if not game.getMoves():
+
+        if game.fiftyCounter >= 100:
+            game.result = 6
+        elif not game.getMoves():
             if game.isCheck():
                 if game.isWhitesMove: game.result = -1
                 else: game.result = 1
                 game.gameString += '#'
             else: game.result = 3
+        elif game.history.count(game._FEN_())>=2:
+            game.result = 5
         else:
             bp, wp = [], []
             for y in range(8):
@@ -315,10 +354,15 @@ class Chess:
         g.board[newCell[1]][newCell[0]] = g.board[oldCell[1]][oldCell[0]]
         g.board[oldCell[1]][oldCell[0]] = None
         g.isWhitesMove = not g.isWhitesMove
+        g.history.append(game._FEN_())
+
+        if game.board[oldCell[1]][oldCell[0]][1]=='P': g.fiftyCounter = 0
+        else: g.fiftyCounter += 1
 
         if game.board[newCell[1]][newCell[0]]:
             if game.board[newCell[1]][newCell[0]][0]!=current_side:
                 # piece acquired
+                g.fiftyCounter = 0
                 g.gameString += ' '+game.board[oldCell[1]][oldCell[0]][1]+game._notation_(oldCell)+'x'+game.board[newCell[1]][newCell[0]][1]+game._notation_(newCell)
                 # TODO: add points for piece acquired
             else: # cannot move to own piece's square
@@ -328,6 +372,7 @@ class Chess:
         elif len(game.log)>0 and oldCell[1]==(3 if current_side=='w' else 4) and\
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
+            g.fiftyCounter = 0
             g.gameString += ' '+game.board[oldCell[1]][oldCell[0]][1]+game._notation_(oldCell)+'x'+game._notation_(newCell)
             g.board[oldCell[1]][newCell[0]] = None
             # TODO: add game points for en passant
@@ -352,15 +397,14 @@ class Chess:
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
             newPiece = 'Q' if testMove else (promoteTo if promoteTo else g.choosePiece())
             if newPiece in 'RNBQ':
+                g.fiftyCounter = 0
                 g.board[newCell[1]][newCell[0]] = current_side + newPiece
                 g.gameString += '='+newPiece
             else: return game
 
         #game states
         g.log.append((oldCell, newCell))
-        #TODO :add board state to history
-        if not testMove: 
-            g.checkResult()
+        if not testMove: g.checkResult()
         
         return g
 

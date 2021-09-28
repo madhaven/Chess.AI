@@ -113,6 +113,8 @@ def gameOverScreen(game:Chess):
     elif game.result == 2: result = 'Game Quit'
     elif game.result == 3: result = 'Stalemate'
     elif game.result == 4: result = 'Draw: Insufficient Material'
+    elif game.result == 5: result = 'Draw: 3-fold repetition'
+    elif game.result == 6: result = 'Draw: 50-move rule'
     while True:
         DISPLAY.fill(BLACK)
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
@@ -175,6 +177,7 @@ def loadGame():
 
 def main():
     global game
+    game = Chess(promotion=choosePromotion)
     activeCell = [7, 7]
     move = [None, None] # keeps track of users selection and move
     pygame.time.wait(500)
