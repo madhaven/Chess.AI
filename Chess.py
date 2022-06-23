@@ -12,7 +12,7 @@ class Chess:
     def __init__(self, promotion=None, gameString=None):
         """intializes the board and sets the state of the board.
 
-        The choosePiece argument expects a function that returns a character in (Q, R, B, N).
+        The `promotion` argument expects a function that returns a character in (Q, R, B, N).
         This function will be used when a pawn is to be promoted. If choosePiece defaults to None,
         the pawn will be promoted to Queen."""
         if not gameString:
@@ -52,7 +52,7 @@ class Chess:
             self.history = game.history
             self.fiftyCounter = game.fiftyCounter
     
-    def __str__(game):
+    def __str__(game) -> str:
         '''prints the board on console'''
         string = '\n'
         for y, row in enumerate(game.board):
@@ -65,16 +65,16 @@ class Chess:
         string += '   a b c d e f g h\n'
         return string
     
-    def _coords_(game, string):
+    def _coords_(game, string) -> tuple:
         '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
         return (ord(string[0].lower())-97, 8-int(string[1]))
     
-    def _notation_(game, cell):
+    def _notation_(game, cell) -> str:
         '''Accepts a duplet cell, array location and returns a string notation of the cell'''
         return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
-    def _FEN_(game):
-        '''Returns a Forsyth–Edwards Notation (FEN) of the board without game information.
+    def _FEN_(game) -> str:
+        '''Returns a Forsyth-Edwards Notation (FEN) of the board without game information.
         Saving boards as strings is expected to speed up history checks when compared to arrays.'''
         fen = ''
         for row in game.board:
@@ -90,16 +90,17 @@ class Chess:
             fen += '/'
         return fen[:-1]
     
-    def checkResult(game):
+    def checkResult(game) -> int:
         """
         checks for a result from the board.
+        0  in progress
         1  white won
         -1 black won
         2  quit
         3  stalemate
         4  draw by insufficient material
-        5  three-fold repetition
-        6  fifty-move rule
+        5  draw by three-fold repetition
+        6  draw by fifty-move rule
         """
 
         if game.fiftyCounter >= 100:
@@ -130,11 +131,11 @@ class Chess:
                 (bp==wp==['B'] and bbcol==wbcol):
                 game.result = 4
             else:
-                game.result = None
+                game.result = 0
 
         return game.result
 
-    def isCheck(game, check_side=None):
+    def isCheck(game, check_side=None) -> bool:
         '''Returns a boolean specifying if the current player is in check or not.
         If check_side is set to w or b, checking is made for white or black respectively.'''
         if not check_side: check_side = 'w' if game.isWhitesMove else 'b'
@@ -153,7 +154,7 @@ class Chess:
                     return True
         return False
 
-    def getMoves(game, current_side=None):
+    def getMoves(game, current_side=None) -> list:
         '''Returns a list of possible moves (pairs of xy coordinate pairs)'''
         if not current_side: current_side = 'w' if game.isWhitesMove else 'b'
         pieces = [
@@ -163,7 +164,7 @@ class Chess:
             (piece, move) for piece in pieces
             for move in game.movesOf(piece)]
     
-    def legalMoves(self, cell, piece=None):
+    def legalMoves(self, cell, piece=None) -> list:
         '''Returns a list of legal moves for a piece in the cell.
         if piece (PRNBQK) is explicitly specified the rules of that piece would apply.
         This method does not consider the state of the game, only the position of the piece.
@@ -217,7 +218,7 @@ class Chess:
         
         return ops
     
-    def checkableMoves(self, cell, piece=None):
+    def checkableMoves(self, cell, piece=None) -> list:
         '''Returns a list of squares eyed/targetted by a piece in the cell, 
         This method simply refines the moves from legalMoves according to the game.
         This method Does not however check if the move is completely possible.'''
@@ -270,13 +271,11 @@ class Chess:
             ops = self.checkableMoves((x, y), current_side+'B') + self.checkableMoves((x, y), current_side+'R')
 
         elif piece[1] == 'K':
-            ops = [
-                op for op in moves
-                if op[0]-x in (-1, 0, 1)
-            ]
+            ops = [ op for op in moves if op[0]-x in (-1, 0, 1) ]
+            
         return ops
     
-    def movesOf(game, cell, piece=None):
+    def movesOf(game, cell, piece=None) -> list:
         '''implements a check to make sure a piece can move from its current location.
         Also adds special checks for the pawn and the king's moves'''
         if type(cell)==str: x, y = game._coords_(cell)
@@ -327,7 +326,7 @@ class Chess:
         ]
         return finalMoves
     
-    def hasMoved(game, cell):
+    def hasMoved(game, cell) -> bool:
         '''Returns a boolean that tells wether or not a move has been made from the cell during the game'''
         if type(cell)==str: x, y = game._coords_(cell)
         else: x, y = cell[0], cell[1]
@@ -336,9 +335,9 @@ class Chess:
                 return True
         return False
     
-    def makeMove(game, oldCell, newCell, testMove=False, promoteTo=None):
-        '''Returns an instance of the board after having made the move
-        testMove is intended for blocking user action in case of possible pawn promotions'''
+    def makeMove(game, oldCell, newCell, testMove=False, promoteTo=None) -> "Chess":
+        '''Returns an instance of the board after having made the move\n
+        `testMove` is intended for blocking user action in case of possible pawn promotions'''
         if type(oldCell) == str: oldCell = game._coords_(oldCell)
         if type(newCell) == str: newCell = game._coords_(newCell)
         
@@ -419,8 +418,8 @@ class Chess:
         return filename
     
     @staticmethod
-    def loadFrom(filename, promotion=None):
-        '''Loads a game state from an old .save version file.'''
+    def loadFrom(filename, promotion=None) -> "Chess":
+        '''Loads a game state from a .save version file.'''
         game = Chess(promotion=promotion)
         lines = open(filename, 'r').readlines()
         if len(lines) == 1:

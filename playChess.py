@@ -1,8 +1,8 @@
-from pygame.constants import K_ESCAPE
 from Chess import Chess
 import pygame
 from os import sep
 
+# window setup
 WINDIM = (1000, 500)
 pygame.init()
 pygame.display.set_caption('Chess')
@@ -11,7 +11,7 @@ CLOCK = pygame.time.Clock()
 FONTSMALL = pygame.font.SysFont(None, 25)
 FONTBIG = pygame.font.SysFont(None, 40)
 
-#globals
+# globals
 CENTER = (WINDIM[0]//2, WINDIM[1]//2)
 BOARDSIDE = 480
 CELLSIDE = BOARDSIDE//8
@@ -22,12 +22,12 @@ GREEN , RED_CHECK= (0, 255, 0), (192, 32, 32)
 BORDER1, BORDER2, BORDER3 = 1, 2, 3
 
 # load images
-loadPiece = lambda p: pygame.image.load(sep.join(['.','assets','pieces',p]))
+loadPiece = lambda p: pygame.image.load(sep.join(['.', 'assets', 'pieces', p]))
 for piece in ['WP', 'BP', 'WK', 'BK', 'WQ', 'BQ', 'WR', 'BR', 'WB', 'BB', 'WN', 'BN']:
     exec("%s = loadPiece('%s.png')"%(piece, piece))
     exec("%s.convert()"%piece)
 
-celllogs=False#True#
+celllogs = False#True#
 def log(label, *s, wait=False):
     if label:
         print(*s)
@@ -54,7 +54,7 @@ def blitText(msg, center=CENTER, col=BLACK, bgcol=GREY, font=FONTSMALL, onclick=
     return cellRect
 
 def drawBoard(game:Chess, center, boardSide:int):
-    '''Draws the Board, the pieces'''
+    '''Draws the Board, the pieces, available moves, etc.'''
     for x in range(4, -4, -1):
         for y in range(4, -4, -1): # for each cell to be blited
             
@@ -70,18 +70,18 @@ def drawBoard(game:Chess, center, boardSide:int):
             # display Piece
             # exec('piece=%s'%game.board[bcell[1]][bcell[0]].upper()) # doesn't work
             if game.board[bcell[1]][bcell[0]]:
-                if game.board[bcell[1]][bcell[0]]=='wP': piece = WP
-                elif game.board[bcell[1]][bcell[0]]=='bP': piece = BP
-                elif game.board[bcell[1]][bcell[0]]=='wK': piece = WK
-                elif game.board[bcell[1]][bcell[0]]=='bK': piece = BK
-                elif game.board[bcell[1]][bcell[0]]=='wQ': piece = WQ
-                elif game.board[bcell[1]][bcell[0]]=='bQ': piece = BQ
-                elif game.board[bcell[1]][bcell[0]]=='wR': piece = WR
-                elif game.board[bcell[1]][bcell[0]]=='bR': piece = BR
-                elif game.board[bcell[1]][bcell[0]]=='wB': piece = WB
-                elif game.board[bcell[1]][bcell[0]]=='bB': piece = BB
-                elif game.board[bcell[1]][bcell[0]]=='wN': piece = WN
-                elif game.board[bcell[1]][bcell[0]]=='bN': piece = BN
+                if game.board[bcell[1]][bcell[0]] == 'wP': piece = WP
+                elif game.board[bcell[1]][bcell[0]] == 'bP': piece = BP
+                elif game.board[bcell[1]][bcell[0]] == 'wK': piece = WK
+                elif game.board[bcell[1]][bcell[0]] == 'bK': piece = BK
+                elif game.board[bcell[1]][bcell[0]] == 'wQ': piece = WQ
+                elif game.board[bcell[1]][bcell[0]] == 'bQ': piece = BQ
+                elif game.board[bcell[1]][bcell[0]] == 'wR': piece = WR
+                elif game.board[bcell[1]][bcell[0]] == 'bR': piece = BR
+                elif game.board[bcell[1]][bcell[0]] == 'wB': piece = WB
+                elif game.board[bcell[1]][bcell[0]] == 'bB': piece = BB
+                elif game.board[bcell[1]][bcell[0]] == 'wN': piece = WN
+                elif game.board[bcell[1]][bcell[0]] == 'bN': piece = BN
                 pr = piece.get_rect()
                 pr.center = (center[0]-x*CELLSIDE+CELLSIDE/2, center[1]-y*CELLSIDE+CELLSIDE/2)
                 DISPLAY.blit(piece, pr)
@@ -108,13 +108,16 @@ def drawOptions(options, game: Chess, filled=False):
 
 def gameOverScreen(game:Chess):
     pygame.time.wait(500)
-    if game.result == -1: result = 'Black Wins'
-    elif game.result == 1: result = 'White Wins'
-    elif game.result == 2: result = 'Game Quit'
-    elif game.result == 3: result = 'Stalemate'
-    elif game.result == 4: result = 'Draw: Insufficient Material'
-    elif game.result == 5: result = 'Draw: 3-fold repetition'
-    elif game.result == 6: result = 'Draw: 50-move rule'
+    resultmap = {
+        -1: 'Black Wins',
+        1: 'White Wins',
+        2: 'Game Quit', # TODO: add white/black wins too 2/-2
+        3: 'Stalemate',
+        4: 'Draw: Insufficient Material',
+        5: 'Draw: 3-fold repetition',
+        6: 'Draw: 50-move rule',
+    }
+    result = resultmap[game.result]
     while True:
         DISPLAY.fill(BLACK)
         drawBoard(game, (WINDIM[0]//2, WINDIM[1]//2), BOARDSIDE)
@@ -126,14 +129,14 @@ def gameOverScreen(game:Chess):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pygame.time.wait(500)
                 return
         pygame.display.update()
         CLOCK.tick(FPS)
 
 def choosePromotion()->str:
-    return 'Q' #under construction
+    return 'Q' #TODO: under construction
     while True:
         pygame.draw.rect(DISPLAY, BLACK, (CENTER[0]-100, CENTER[1]-100, 200, 200))
         events = pygame.eveng.get()
@@ -167,7 +170,7 @@ def loadGame():
                 return
             elif event.type == pygame.DROPCOMPLETE:
                 bgcol = BLACK
-            elif event.type == pygame.KEYDOWN and event.key == K_ESCAPE:
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 return
             elif event.type == pygame.QUIT:
                 pygame.quit()
@@ -177,7 +180,7 @@ def loadGame():
 
 def main():
     global game
-    game = Chess(promotion=choosePromotion)
+    if not game: game = Chess(promotion=choosePromotion)
     activeCell = [7, 7]
     move = [None, None] # keeps track of users selection and move
     pygame.time.wait(500)
@@ -186,23 +189,32 @@ def main():
         # event handling
         events = pygame.event.get()
         for event in events:
+
+            # mouse response
             if event.type==pygame.MOUSEMOTION:
                 x, y=((event.pos[0]-(CENTER[0]-BOARDSIDE//2))//CELLSIDE, (event.pos[1]-(CENTER[1]-BOARDSIDE//2))//CELLSIDE)
                 if 0<=x<=7 and 0<=y<=7 and activeCell!=[x, y]:
                     activeCell=[x, y]
                     log(celllogs, 'activeCell : %s'%activeCell)
+            
+            # click handles
             elif event.type==pygame.MOUSEBUTTONDOWN:
-                if not move[0]: move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
-                else: move[1] = activeCell.copy()
-            elif activeCell and event.type==pygame.KEYDOWN: # keyboard
+                if not move[0]:
+                    move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
+                else:
+                    move[1] = activeCell.copy()
+
+            # keyboard
+            elif activeCell and event.type==pygame.KEYDOWN:
                 if event.key==pygame.K_DOWN and activeCell[1]<7: activeCell[1] += 1
                 elif event.key==pygame.K_UP and activeCell[1]>0: activeCell[1] -= 1
                 elif event.key==pygame.K_LEFT and activeCell[0]>0: activeCell[0] -= 1
                 elif event.key==pygame.K_RIGHT and activeCell[0]<7: activeCell[0] += 1
-                elif event.key==pygame.K_SPACE:
+                elif event.key==pygame.K_SPACE or event.key==pygame.K_RETURN:
                     if not move[0]: move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
                     else: move[1] = activeCell.copy()
                 log(celllogs, 'activeCell : %s'%activeCell)
+            
             elif event.type==pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -237,6 +249,7 @@ def main():
     #Game Over
     pygame.time.wait(500)
     gameOverScreen(game)
+    game = None
 
 if __name__=='__main__':
 
