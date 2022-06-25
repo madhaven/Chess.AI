@@ -1,11 +1,7 @@
 from copy import deepcopy
 from datetime import datetime
-
-
-class Player:
-    '''Contains implementations of a players functionality.'''
-    def __init__(self, White=True):
-        pass
+from abc import ABC, abstractmethod
+import random
 
 class Chess:
     '''Contains all logic for a chess game'''
@@ -25,7 +21,7 @@ class Chess:
             self.result = None
             self.wPoints = 0
             self.bPoints = 0
-            self.choosePiece = promotion if promotion else lambda:'Q'
+            self.choosePiece = promotion if promotion else lambda: input('Chose a piece to promote to: ')[0]
             self.log = []
             self.gameString = ''
             self.history = []
@@ -311,18 +307,18 @@ class Chess:
             if not kingMoved and not game.isCheck():
                 if not game.hasMoved((7, y)) and \
                 game.board[y][5]==game.board[y][6]==None and \
-                not game.makeMove((4, y), (5, y), True).isCheck(current_side) :
+                not game.makeMove((4, y), (5, y), _testMove=True).isCheck(current_side) :
                     moves.append((6, y))
                 if not game.hasMoved((0, y)) and \
                 game.board[y][1]==game.board[y][2]==game.board[y][3]==None and \
-                not game.makeMove((4, y), (3, y), True).isCheck(current_side) :
+                not game.makeMove((4, y), (3, y), _testMove=True).isCheck(current_side) :
                     moves.append((2, y))
 
         # ensure proposed move doesn't have a friendly piece on it and don't result in check
         finalMoves = [ 
             move for move in moves 
             if (not game.board[move[1]][move[0]] or game.board[move[1]][move[0]][0]!=current_side)
-            and not game.makeMove((x,y), move, True).isCheck(current_side)
+            and not game.makeMove((x,y), move, _testMove=True).isCheck(current_side)
         ]
         return finalMoves
     
@@ -335,9 +331,9 @@ class Chess:
                 return True
         return False
     
-    def makeMove(game, oldCell, newCell, testMove=False, promoteTo=None) -> "Chess":
+    def makeMove(game, oldCell, newCell, _testMove=False, promoteTo=None) -> "Chess":
         '''Returns an instance of the board after having made the move\n
-        `testMove` is intended for blocking user action in case of possible pawn promotions'''
+        `_testMove` is intended for blocking user action in case of possible pawn promotions'''
         if type(oldCell) == str: oldCell = game._coords_(oldCell)
         if type(newCell) == str: newCell = game._coords_(newCell)
         
@@ -394,7 +390,7 @@ class Chess:
         
         #pawn promotion
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
-            newPiece = 'Q' if testMove else (promoteTo if promoteTo else g.choosePiece())
+            newPiece = 'Q' if _testMove else (promoteTo if promoteTo else g.choosePiece())
             if newPiece in 'RNBQ':
                 g.fiftyCounter = 0
                 g.board[newCell[1]][newCell[0]] = current_side + newPiece
@@ -403,7 +399,7 @@ class Chess:
 
         #game states
         g.log.append((oldCell, newCell))
-        if not testMove: g.checkResult()
+        if not _testMove: g.checkResult()
         
         return g
 
@@ -431,3 +427,22 @@ class Chess:
                 move = line.split()[1].split('-')
                 game = game.makeMove(move[0], move[1])
         return game
+
+class Player(ABC):
+    '''Contains implementations of a players functionality.'''
+
+    @abstractmethod
+    def chooseMove(self, game:Chess) -> list:
+        pass
+
+    @abstractmethod
+    def choosePromotion(self, game:Chess) -> str:
+        pass
+
+class PlayerRandom(Player):
+
+    def chooseMove(self, game:Chess) -> list:
+        return random.choice(game.getMoves())
+    
+    def choosePromotion(self, game:Chess) -> str:
+        return random.choice('QRBN')
