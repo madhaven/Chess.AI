@@ -113,7 +113,7 @@ class Chess:
             bp, wp = [], []
             for y in range(8):
                 for x in range(8):
-                    piece = game.board[y][x]
+                    piece = game.pieceAt((x, y))
                     if not piece or piece[1]=='K': continue
                     if piece[0]=='b':
                         bp.append(piece[1])
@@ -137,7 +137,7 @@ class Chess:
         if not check_side: check_side = 'w' if game.isWhitesMove else 'b'
         for y, row in enumerate(game.board):
             for x, cell in enumerate(row):
-                if game.board[y][x]==check_side+'K':
+                if game.pieceAt((x, y)) == check_side+'K':
                     king=(x, y)
                     break
             else: continue
@@ -145,17 +145,25 @@ class Chess:
         for checkPiece in ['P', 'RQ', 'BQ', 'N', 'K']:
             for coord in game.checkableMoves(king, check_side+checkPiece[0]):
                 #essentially places a piece in kings cell and finds same enemy pieces in sight
-                piece = game.board[coord[1]][coord[0]]
+                piece = game.pieceAt(coord)
                 if piece and piece[0]!=check_side and piece[1] in checkPiece:
                     return True
         return False
+
+    def pieceAt(game, cell):
+        if type(cell) == str:
+            x, y = game._coords_(cell)
+        else:
+            x, y = cell[0], cell[1]
+        return game.board[y][x]
 
     def getMoves(game, current_side=None) -> list:
         '''Returns a list of possible moves (pairs of xy coordinate pairs)'''
         if not current_side: current_side = 'w' if game.isWhitesMove else 'b'
         pieces = [
             (x, y) for y, row in enumerate(game.board)
-            for x, cell in enumerate(row) if cell!=None and cell[0]==current_side]
+            for x, cell in enumerate(row)
+            if cell != None and cell[0] == current_side]
         return [
             (piece, move) for piece in pieces
             for move in game.movesOf(piece)]
@@ -277,8 +285,8 @@ class Chess:
         if type(cell)==str: x, y = game._coords_(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
-            if not game.board[y][x]: return []
-            else: piece = game.board[y][x]
+            if not game.pieceAt((x, y)): return []
+            else: piece = game.pieceAt((x, y))
         
         current_side = piece[0]
         moves = []
@@ -286,14 +294,13 @@ class Chess:
         if piece[1]=='P':
             for op in game.legalMoves((x, y), piece):
                 if op[0]-x == 0: # straight move
-                    if not game.board[op[1]][op[0]]: # empty square
+                    if not game.pieceAt(op): # empty square
                         if op[1]-y in (1, -1):
                             moves.append(op) # one step
-                        elif op[1]-y in (2, -2) and not game.board[(op[1]+y)//2][op[0]]:
+                        elif op[1]-y in (2, -2) and not game.pieceAt((op[0], (op[1]+y)//2)):
                             moves.append(op) # two steps and empty path
                 else: # sidemove
-                    if game.board[op[1]][op[0]] and game.board[op[1]][op[0]][0]!=current_side: #takes
-                        ('takes', game.board[y][x], game.board[op[1]][op[0]])
+                    if game.pieceAt(op) and game.pieceAt(op)[0] != current_side: #takes
                         moves.append(op)
                     elif len(game.log)>0 and y==(3 if current_side=='w' else 4) and\
                         op[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and\
@@ -306,18 +313,18 @@ class Chess:
             kingMoved = game.hasMoved((4, 0)) if current_side=='b' else game.hasMoved((4, 7))
             if not kingMoved and not game.isCheck():
                 if not game.hasMoved((7, y)) and \
-                game.board[y][5]==game.board[y][6]==None and \
+                game.pieceAt((5, y)) == game.pieceAt((6, y)) == None and \
                 not game.makeMove((4, y), (5, y), _testMove=True).isCheck(current_side) :
                     moves.append((6, y))
                 if not game.hasMoved((0, y)) and \
-                game.board[y][1]==game.board[y][2]==game.board[y][3]==None and \
+                game.pieceAt((1, y)) == game.pieceAt((2, y)) == game.pieceAt((3, y)) == None and \
                 not game.makeMove((4, y), (3, y), _testMove=True).isCheck(current_side) :
                     moves.append((2, y))
 
         # ensure proposed move doesn't have a friendly piece on it and don't result in check
         finalMoves = [ 
             move for move in moves 
-            if (not game.board[move[1]][move[0]] or game.board[move[1]][move[0]][0]!=current_side)
+            if (not game.pieceAt(move) or game.pieceAt(move)[0] != current_side)
             and not game.makeMove((x,y), move, _testMove=True).isCheck(current_side)
         ]
         return finalMoves
@@ -337,12 +344,12 @@ class Chess:
         if type(oldCell) == str: oldCell = game._coords_(oldCell)
         if type(newCell) == str: newCell = game._coords_(newCell)
         
-        if not game.board[oldCell[1]][oldCell[0]] \
-        or (game.board[oldCell[1]][oldCell[0]][0]=='w' and not game.isWhitesMove) \
-        or (game.board[oldCell[1]][oldCell[0]][0]=='b' and game.isWhitesMove):
+        if not game.pieceAt(oldCell) \
+        or (game.pieceAt(oldCell)[0]=='w' and not game.isWhitesMove) \
+        or (game.pieceAt(oldCell)[0]=='b' and game.isWhitesMove):
             return game
 
-        current_side = game.board[oldCell[1]][oldCell[0]][0]
+        current_side = game.pieceAt(oldCell)[0]
         g = deepcopy(game)
 
         # the move
@@ -351,14 +358,14 @@ class Chess:
         g.isWhitesMove = not g.isWhitesMove
         g.history.append(game._FEN_())
 
-        if game.board[oldCell[1]][oldCell[0]][1]=='P': g.fiftyCounter = 0
+        if game.pieceAt(oldCell)[1]=='P': g.fiftyCounter = 0
         else: g.fiftyCounter += 1
 
-        if game.board[newCell[1]][newCell[0]]:
-            if game.board[newCell[1]][newCell[0]][0]!=current_side:
+        if game.pieceAt(newCell):
+            if game.pieceAt(newCell)[0] != current_side:
                 # piece acquired
                 g.fiftyCounter = 0
-                g.gameString += ' '+game.board[oldCell[1]][oldCell[0]][1]+game._notation_(oldCell)+'x'+game.board[newCell[1]][newCell[0]][1]+game._notation_(newCell)
+                g.gameString += ' '+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'x'+game.pieceAt(newCell)[1]+game._notation_(newCell)
                 # TODO: add points for piece acquired
             else: # cannot move to own piece's square
                 return game
@@ -368,12 +375,12 @@ class Chess:
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
             g.fiftyCounter = 0
-            g.gameString += ' '+game.board[oldCell[1]][oldCell[0]][1]+game._notation_(oldCell)+'x'+game._notation_(newCell)
+            g.gameString += ' '+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'x'+game._notation_(newCell)
             g.board[oldCell[1]][newCell[0]] = None
             # TODO: add game points for en passant
         
         #castling
-        elif game.board[oldCell[1]][oldCell[0]][1]=='K' and not game.hasMoved(oldCell):
+        elif game.pieceAt(oldCell)[1]=='K' and not game.hasMoved(oldCell):
             if oldCell[0]-newCell[0] == 2: #queenside
                 if not game.hasMoved((0, oldCell[1])):
                     g.board[oldCell[1]][3]=current_side+'R'
@@ -386,7 +393,7 @@ class Chess:
                     g.gameString += ' '+'O-O'
 
         else: g.gameString += \
-            (' ' if g.gameString else '')+game.board[oldCell[1]][oldCell[0]][1]+game._notation_(oldCell)+'-'+game._notation_(newCell)
+            (' ' if g.gameString else '')+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'-'+game._notation_(newCell)
         
         #pawn promotion
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
@@ -453,7 +460,7 @@ class PlayerGreedy(PlayerRandom):
         moves = game.getMoves()
         attackMoves = [
             move for move in moves
-            if game.board[move[1][1]][move[1][0]] != None and game.board[move[1][1]][move[1][0]][0] == ('b' if game.isWhitesMove else 'w')
+            if game.pieceAt(move[1]) != None and game.pieceAt(move[1])[0] == ('b' if game.isWhitesMove else 'w')
         ]
         if attackMoves:
             print(attackMoves)

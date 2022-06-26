@@ -65,26 +65,26 @@ def drawBoard(game:Chess, activeCell=False, center=CENTER, boardSide=BOARDSIDE, 
             bcell = (4-x, 4-y)
             bgcol = GREY if (x+y)%2==0 else GREYDARK
             if game.isCheck():
-                piece=game.board[4-y][4-x]
+                piece=game.pieceAt((4-x, 4-y))
                 if (game.isWhitesMove and piece=='wK') or (not game.isWhitesMove and piece=='bK'):
                     bgcol = RED_CHECK
             pygame.draw.rect(DISPLAY, bgcol, (center[0]-x*CELLSIDE, center[1]-y*CELLSIDE, CELLSIDE, CELLSIDE))
 
             # display Piece
-            # exec('piece=%s'%game.board[bcell[1]][bcell[0]].upper()) # doesn't work
-            if game.board[bcell[1]][bcell[0]]:
-                if game.board[bcell[1]][bcell[0]] == 'wP': piece = WP
-                elif game.board[bcell[1]][bcell[0]] == 'bP': piece = BP
-                elif game.board[bcell[1]][bcell[0]] == 'wK': piece = WK
-                elif game.board[bcell[1]][bcell[0]] == 'bK': piece = BK
-                elif game.board[bcell[1]][bcell[0]] == 'wQ': piece = WQ
-                elif game.board[bcell[1]][bcell[0]] == 'bQ': piece = BQ
-                elif game.board[bcell[1]][bcell[0]] == 'wR': piece = WR
-                elif game.board[bcell[1]][bcell[0]] == 'bR': piece = BR
-                elif game.board[bcell[1]][bcell[0]] == 'wB': piece = WB
-                elif game.board[bcell[1]][bcell[0]] == 'bB': piece = BB
-                elif game.board[bcell[1]][bcell[0]] == 'wN': piece = WN
-                elif game.board[bcell[1]][bcell[0]] == 'bN': piece = BN
+            # exec('piece=%s'%game.pieceAt(bcell).upper()) # doesn't work
+            if game.pieceAt(bcell):
+                if game.pieceAt(bcell) == 'wP': piece = WP
+                elif game.pieceAt(bcell) == 'bP': piece = BP
+                elif game.pieceAt(bcell) == 'wK': piece = WK
+                elif game.pieceAt(bcell) == 'bK': piece = BK
+                elif game.pieceAt(bcell) == 'wQ': piece = WQ
+                elif game.pieceAt(bcell) == 'bQ': piece = BQ
+                elif game.pieceAt(bcell) == 'wR': piece = WR
+                elif game.pieceAt(bcell) == 'bR': piece = BR
+                elif game.pieceAt(bcell) == 'wB': piece = WB
+                elif game.pieceAt(bcell) == 'bB': piece = BB
+                elif game.pieceAt(bcell) == 'wN': piece = WN
+                elif game.pieceAt(bcell) == 'bN': piece = BN
                 pr = piece.get_rect()
                 pr.center = (center[0]-x*CELLSIDE+CELLSIDE/2, center[1]-y*CELLSIDE+CELLSIDE/2)
                 DISPLAY.blit(piece, pr)
@@ -130,7 +130,7 @@ class PlayerUI(Player):
                 # click handles
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if not move[0]:
-                        move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
+                        move[0] = activeCell.copy() if game.pieceAt(activeCell) else None
                     else:
                         move[1] = activeCell.copy()
             
@@ -142,7 +142,7 @@ class PlayerUI(Player):
                     elif event.key==pygame.K_RIGHT and activeCell[0]<7: activeCell[0] += 1
                     elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
                         if not move[0]:
-                            move[0] = activeCell.copy() if game.board[activeCell[1]][activeCell[0]] else None
+                            move[0] = activeCell.copy() if game.pieceAt(activeCell) else None
                         else:
                             move[1] = activeCell.copy()
                     log(celllogs, 'activeCell : %s'%activeCell)
@@ -153,15 +153,15 @@ class PlayerUI(Player):
             
             options=[]
             if not move[0]:
-                selectedPiece = game.board[activeCell[1]][activeCell[0]]
+                selectedPiece = game.pieceAt(activeCell)
                 if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w') or (not game.isWhitesMove and selectedPiece[0]=='b')):
                     options = game.movesOf(activeCell)
             else:
-                selectedPiece = game.board[move[0][1]][move[0][0]]
+                selectedPiece = game.pieceAt(move[0])
                 if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
                     options = game.movesOf(move[0])
                 if move[1]:
-                    selectedPiece = game.board[move[1][1]][move[1][0]]
+                    selectedPiece = game.pieceAt(move[1])
                     if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
                         options = game.movesOf(move[0])
                         move = [move[1], None]
@@ -251,7 +251,7 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
     while not game.result:
         player = white if game.isWhitesMove else black
         move = player.chooseMove(game)
-        if game.board[move[0][1]][move[0][0]][1] == 'P' and move[1][1] in (0, 7):
+        if game.pieceAt(move[0])[1] == 'P' and move[1][1] in (0, 7):
             promoteToPiece = player.choosePromotion(game)
         else:
             promoteToPiece = None
