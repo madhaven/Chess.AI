@@ -1,4 +1,4 @@
-from Chess import Chess, Player, PlayerRandom
+from Chess import Chess, Player, PlayerGreedy, PlayerRandom
 import pygame
 from os import sep
 
@@ -264,7 +264,7 @@ if __name__=='__main__':
     # Main Menu
     while True:
         DISPLAY.fill(BLACK)
-        blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main, white=PlayerUI(), black=PlayerRandom())
+        blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main, white=PlayerUI(), black=PlayerGreedy())
         blitText('Load Game', (CENTER[0], WINDIM[1]*2/3), font=FONTBIG, onclick=loadGame)
 
         events = pygame.event.get()

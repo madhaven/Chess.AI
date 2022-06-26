@@ -446,3 +446,15 @@ class PlayerRandom(Player):
     
     def choosePromotion(self, game:Chess) -> str:
         return random.choice('QRBN')
+
+class PlayerGreedy(PlayerRandom):
+
+    def chooseMove(self, game: Chess) -> list:
+        moves = game.getMoves()
+        attackMoves = [
+            move for move in moves
+            if game.board[move[1][1]][move[1][0]] != None and game.board[move[1][1]][move[1][0]][0] == ('b' if game.isWhitesMove else 'w')
+        ]
+        if attackMoves:
+            print(attackMoves)
+        return random.choice(attackMoves if attackMoves else moves)
