@@ -198,10 +198,10 @@ def gameOverScreen(game:Chess):
     }[game.result]
     DISPLAY.fill(BLACK)
     drawBoard(game)
-    blitText('Save Game', center=((WINDIM[0]-BOARDSIDE)/4, WINDIM[1]/2), onclick=game.save)
     pygame.display.update()
     pygame.time.wait(500)
     while True:
+        blitText('Save Game', center=((WINDIM[0]-BOARDSIDE)/4, WINDIM[1]/2), onclick=game.save)
         blitText(result, center=(CENTER[0], CENTER[1]), font=FONTBIG, bgcol=BLACK, col=GREY)
         blitText('press escape to go back', center=(CENTER[0], CENTER[1]*1.3), font=FONTSMALL, bgcol=BLACK, col=GREY)
         events = pygame.event.get()

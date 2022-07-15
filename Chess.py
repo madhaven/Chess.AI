@@ -2,6 +2,7 @@ from copy import deepcopy
 from datetime import datetime
 from abc import ABC, abstractmethod
 import random
+import os
 
 class Chess:
     '''Contains all logic for a chess game'''
@@ -410,29 +411,20 @@ class Chess:
         
         return g
 
-    def save(game):
+    def save(game, filename:str=None):
         '''Saves the log of the game into a text file'''
         now = datetime.now()
-        filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
-        # with open(filename, 'w') as file:
-        #     for i, log in enumerate(game.log):
-        #         file.write('%d. %s-%s\n'%(i+1, game._notation_(log[0]), game._notation_(log[1])))
+        if not filename:
+            filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
         open(filename, 'w').write(game.gameString)
         return filename
     
     @staticmethod
     def loadFrom(filename, promotion=None) -> "Chess":
         '''Loads a game state from a .save version file.'''
-        game = Chess(promotion=promotion)
         lines = open(filename, 'r').readlines()
-        if len(lines) == 1:
-            game = Chess(gameString=lines[0], promotion=promotion)
-            print('game initialized', game)
-            return game
-        else:
-            for line in lines:
-                move = line.split()[1].split('-')
-                game = game.makeMove(move[0], move[1])
+        game = Chess(gameString=lines[0], promotion=promotion)
+        print('game initialized', game)
         return game
 
 class Player(ABC):

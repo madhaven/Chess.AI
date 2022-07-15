@@ -1,0 +1,1 @@
+Pe2-e4 Pe7-e5 Pf2-f4 Pf7-f5 Pg2-g4 Pg7-g5 Ph2-h4 Ph7-h5 Pd2-d4 Pd7-d5 Pc2-c4 Pc7-c5 Pb2-b4 Pb7-b5 Pa2-a4 Pa7-a5 Nb1-c3 Nb8-c6 Bc1-a3 Bc8-a6 Qd1-d3 Qd8-d6 Bf1-h3 Bf8-h6 Ng1-f3 Ng8-f6
