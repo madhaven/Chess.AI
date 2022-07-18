@@ -153,19 +153,33 @@ class PlayerUI(Player):
             
             options=[]
             if not move[0]:
+                # no moves made
                 selectedPiece = game.pieceAt(activeCell)
                 if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w') or (not game.isWhitesMove and selectedPiece[0]=='b')):
                     options = game.movesOf(activeCell)
             else:
+                # selected cell
                 selectedPiece = game.pieceAt(move[0])
                 if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
                     options = game.movesOf(move[0])
+                    if not options:
+                        # piece can't move: cancel selection
+                        move = [None, None]
+                else:
+                    # selected piece on wrong side
+                    options, move = [], [None, None]
                 if move[1]:
+                    # cell selected for move
                     selectedPiece = game.pieceAt(move[1])
-                    if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
+                    if move[0] == move[1]:
+                        # clicked same piece: cancel selection
+                        options, move = [], [None, None]
+                    elif selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
+                        # clicked another piece on same side
                         options = game.movesOf(move[0])
                         move = [move[1], None]
-                    elif tuple(move[1]) in options and move[1]!=move[0]:
+                    elif tuple(move[1]) in options:
+                        # valid move made
                         return move
                     else:
                         move = [None , None]
