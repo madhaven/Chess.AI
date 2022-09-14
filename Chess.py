@@ -1,7 +1,5 @@
 from copy import deepcopy
 from datetime import datetime
-from abc import ABC, abstractmethod
-import random
 import os
 
 class Chess:
@@ -152,6 +150,7 @@ class Chess:
         return False
 
     def pieceAt(game, cell):
+        '''Returns the piece on a particular cell on the board (None if empty)'''
         if type(cell) == str:
             x, y = game._coords_(cell)
         else:
@@ -415,7 +414,7 @@ class Chess:
         '''Saves the log of the game into a text file'''
         now = datetime.now()
         if not filename:
-            filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
+            filename = os.path.join('assets', 'sampleGames', 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second))
         open(filename, 'w').write(game.gameString)
         return filename
     
@@ -426,34 +425,3 @@ class Chess:
         game = Chess(gameString=lines[0], promotion=promotion)
         print('game initialized', game)
         return game
-
-class Player(ABC):
-    '''Contains implementations of a players functionality.'''
-
-    @abstractmethod
-    def chooseMove(self, game:Chess) -> list:
-        pass
-
-    @abstractmethod
-    def choosePromotion(self, game:Chess) -> str:
-        pass
-
-class PlayerRandom(Player):
-
-    def chooseMove(self, game:Chess) -> list:
-        return random.choice(game.getMoves())
-    
-    def choosePromotion(self, game:Chess) -> str:
-        return random.choice('QRBN')
-
-class PlayerGreedy(PlayerRandom):
-
-    def chooseMove(self, game: Chess) -> list:
-        moves = game.getMoves()
-        attackMoves = [
-            move for move in moves
-            if game.pieceAt(move[1]) != None and game.pieceAt(move[1])[0] == ('b' if game.isWhitesMove else 'w')
-        ]
-        if attackMoves:
-            print(attackMoves)
-        return random.choice(attackMoves if attackMoves else moves)

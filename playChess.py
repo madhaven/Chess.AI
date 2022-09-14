@@ -1,4 +1,5 @@
-from Chess import Chess, Player, PlayerGreedy, PlayerRandom
+from Chess import Chess
+from Players import Player, PlayerGreedy, PlayerRandom
 import pygame
 from os import sep
 
@@ -271,6 +272,7 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
             promoteToPiece = None
         log(celllogs, move)
         game = game.makeMove(*move, promoteTo=promoteToPiece)
+    game.save()
     gameOverScreen(game)
 
 if __name__=='__main__':
