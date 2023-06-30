@@ -1,0 +1,1 @@
+Pe2-e4 Nb8-c6 Pc2-c3 Pd7-d5 Bf1-d3 Pd5xPe4 Bd3xPe4 Qd8xPd2 Qd1xQd2 Ra8-b8 Pb2-b4 Nc6xPb4 Pc3xNb4 Rb8-a8 Bc1-a3 Bc8-g4 Pf2-f3 Bg4xPf3 Be4xBf3 Ra8-b8 Nb1-c3 Pg7-g5 Nc3-d5 Pg5-g4 Bf3xPg4 Pf7-f5 Bg4xPf5 Pe7-e5 Nd5xPc7 Qd2-d5 Kf7-g7 Nc7-e8 Rb8xNe8 Qd5-d7 Kg7-h6 Qd7xRe8 Bf8xPb4 Ba3xBb4 O-O-O Pe5-e4 Rd1-d6 Pb7-b5 Qe8-d7 Ng8-e7 Qd7xNe7 Kg7-g8 Rd6-d8#

@@ -1,0 +1,1 @@
+Pe2-e4 Pe7-e6 Pe4-e5 Pc7-c6 Pd2-d4 Pb7-b5 Ng1-f3 Pd7-d5 Pe5xd6 Qd8xPd6 Nb1-c3 Qd6xPd4 Nf3xQd4 Bf8-c5 Nc3-e4 Bc5xNd4 Qd1xBd4 Ph7-h5 Ne4-d6 Nd6xPf7 Kd8-e7 Nf7xRh8 Ng8-f6 Nh8-g6 Ke7-f7 Ng6-e5 Kf7-f8 Qd4-d8 Nf6-e8 Ne5-g6 Kf8-f7 Bf1-d3 Bc8-b7 Qd8-e7 Kf7-g8 Qe7-f8 Kg8-h7 Qf8-h8#

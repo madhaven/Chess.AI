@@ -1,1 +1,1 @@
-Pd2-d4 Pe7-e5 Pd4xPe5 Pf7-f6 Pe5xPf6 Bf8-e7 Pf6xPg7 Ng8-h6 Pg7xRh8=Q Qh8xPh7 Kf7-e8 Qh7xNh6 Be7-g5 Qh6-h8 Ke8-e7 Bc1xBg5 Ke7-f7 Qh8xQd8 Nb8-c6 Qd8xPc7 Pb7-b6 Qd1-d5 Kf7-e8 Qd5-g8#
+Pd2-d4 Pe7-e5 Pd4xPe5 Pf7-f6 Pe5xPf6 Bf8-e7 Pf6xPg7 Ng8-h6 Pg7xRh8=Q Ke8-f7 Qh8xPh7 Kf7-e8 Qh7xNh6 Be7-g5 Qh6-h8 Ke8-e7 Bc1xBg5 Ke7-f7 Qh8xQd8 Nb8-c6 Qd8xPc7 Pb7-b6 Qd1-d5 Kf7-e8 Qd5-g8#
