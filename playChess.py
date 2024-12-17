@@ -1,4 +1,5 @@
-from Chess import Chess, Player, PlayerGreedy, PlayerRandom
+from Chess import Chess, Player
+from Players import PlayerGreedy, PlayerRandom
 import pygame
 from os import sep
 

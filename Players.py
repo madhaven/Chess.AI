@@ -14,8 +14,8 @@ class PlayerGreedy(PlayerRandom):
         moves = game.getMoves()
         attackMoves = [
             move for move in moves
-            if game.pieceAt(move[1]) != None and game.pieceAt(move[1])[0] == ('b' if game.isWhitesMove else 'w')
+            if game.isAttackMove(*move)
         ]
         if attackMoves:
-            print(attackMoves)
+            print('attack moves:', *[f'{game.notation(a)}-{game.notation(b)},' for a, b in attackMoves])
         return random.choice(attackMoves if attackMoves else moves)

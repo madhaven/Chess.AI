@@ -66,7 +66,8 @@ class Chess:
         '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
         return (ord(string[0].lower())-97, 8-int(string[1]))
     
-    def _notation_(game, cell) -> str:
+    @staticmethod
+    def notation(cell) -> str:
         '''Accepts a duplet cell, array location and returns a string notation of the cell'''
         return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
@@ -366,7 +367,7 @@ class Chess:
             if game.pieceAt(newCell)[0] != current_side:
                 # piece acquired
                 g.fiftyCounter = 0
-                g.gameString += ' '+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'x'+game.pieceAt(newCell)[1]+game._notation_(newCell)
+                g.gameString += ' '+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'x'+game.pieceAt(newCell)[1]+game.notation(newCell)
                 # TODO: add points for piece acquired
             else: # cannot move to own piece's square
                 return game
@@ -376,7 +377,7 @@ class Chess:
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
             g.fiftyCounter = 0
-            g.gameString += ' '+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'x'+game._notation_(newCell)
+            g.gameString += ' '+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'x'+game.notation(newCell)
             g.board[oldCell[1]][newCell[0]] = None
             # TODO: add game points for en passant
         
@@ -394,7 +395,7 @@ class Chess:
                     g.gameString += ' '+'O-O'
 
         else: g.gameString += \
-            (' ' if g.gameString else '')+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'-'+game._notation_(newCell)
+            (' ' if g.gameString else '')+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'-'+game.notation(newCell)
         
         #pawn promotion
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
@@ -410,6 +411,10 @@ class Chess:
         if not _testMove: g.checkResult()
         
         return g
+
+    def isAttackMove(game, oldCell, newCell):
+        return game.pieceAt(newCell) != None and\
+            game.pieceAt(newCell)[0] == ('b' if game.isWhitesMove else 'w')
 
     def save(game, filename:str=None):
         '''Saves the log of the game into a text file'''
