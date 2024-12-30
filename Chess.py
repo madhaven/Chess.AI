@@ -413,8 +413,8 @@ class Chess:
         return g
 
     def isAttackMove(game, oldCell, newCell):
-        return game.pieceAt(newCell) != None and\
-            game.pieceAt(newCell)[0] == ('b' if game.isWhitesMove else 'w')
+        if game.pieceAt(newCell) == None: return False
+        return game.pieceAt(oldCell)[0] != game.pieceAt(newCell)[0]
 
     def save(game, filename:str=None):
         '''Saves the log of the game into a text file'''

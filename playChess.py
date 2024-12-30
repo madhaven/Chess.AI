@@ -106,8 +106,12 @@ def drawBoard(game:Chess, activeCell=False, center=CENTER, boardSide=BOARDSIDE, 
         x, y = CENTER[0]-op_cell[0]*CELLSIDE+CELLSIDE/2, CENTER[1]-op_cell[1]*CELLSIDE+CELLSIDE/2
         if move[0]:
             pygame.draw.circle(DISPLAY, color, (x, y), CELLSIDE/9)
+            if game.isAttackMove(move[0], option):
+                pygame.draw.circle(DISPLAY, color, (x, y), CELLSIDE/6, BORDER2)
         else:
             pygame.draw.circle(DISPLAY, color, (x, y), CELLSIDE/9, BORDER2)
+            if game.isAttackMove(activeCell, option):
+                pygame.draw.circle(DISPLAY, color, (x, y), CELLSIDE/6, BORDER2)
 
 class PlayerUI(Player):
 
