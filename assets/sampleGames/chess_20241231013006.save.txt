@@ -1,0 +1,2 @@
+Pe2-e4 Pc7-c5 Bf1-c4 Pg7-g5 Pd2-d3 Qd8-a5 Bc1-d2 Qa5-b6 Nb1-c3 Ng8-h6 Pg2-g4 Pf7-f6 Nc3-d5 Qb6-d8 Ng1-e2 Pe7-e5 Ne2-c3 Nh6-g8 Qd1-f3 Ph7-h6 Nd5xPf6 Ng8xNf6 Nc3-d5 Nf6-g8 Nd5-c7 Qd8xNc7 Qf3-f7 Qf7xBf8#
+PlayerUI(), MinimaxPlayer_01(10)

@@ -20,7 +20,7 @@ class Chess:
             self.bPoints = 0
             self.log = []
             self.gameString = ''
-            self.history = []
+            self.history:list[str] = []
             self.fiftyCounter = 0
         else:
             game = Chess()
@@ -90,9 +90,11 @@ class Chess:
     
     @staticmethod
     def piecePoints(piece: str):
-        '''returns the points for a piece'''
-        p = piece[1] if len(piece) == 2 else piece
-        return { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1 }[p]
+        '''returns the points for a piece.\n
+        White pieces give negative values.'''
+        value = { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1 }[piece[1]]
+        if piece[0] == 'w': value *= -1
+        return value
 
     def checkResult(game) -> int:
         """
@@ -348,7 +350,7 @@ class Chess:
                 return True
         return False
     
-    def makeMove(game, oldCell, newCell, _testMove=False, promoteTo='Q') -> "Chess":
+    def makeMove(game, oldCell, newCell, _testMove=False, promoteTo:str='Q') -> "Chess":
         '''Returns an instance of the board after having made the move\n
         `_testMove` is intended for blocking user action in case of possible pawn promotions'''
         if type(oldCell) == str: oldCell = game.coords(oldCell)

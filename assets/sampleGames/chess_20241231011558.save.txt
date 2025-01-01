@@ -1,0 +1,2 @@
+Pe2-e4 Pa7-a5 Bf1-c4 Pe7-e6 Pd2-d3 Bf8-b4 Bc1-d2 Bb4-d6 Ng1-f3 Pa5-a4 Pa2-a3 Ng8-f6 Qd1-e2 Ph7-h5 Bd2-c3 Nf6-g4 Ph2-h3 Ng4-h6 Bc3-d2 Nh6-g8 Nf3-g5 Pf7-f6 Ng5-f3 Pb7-b6 Pb2-b4 Bd6-e7 Nb1-c3 Pc7-c6 Nc3xPa4 Ra8xNa4 Bd2-f4 Pd7-d6 Pb4-b5 Pc6-c5 Pc2-c3 Be7-f8 Qe2-c2 Ra4-a8 Pa3-a4 Pg7-g6 Qc2-b3 Ra8-a7 Bc4xPe6 Bc8-b7 Be6-f7 Qb3-e6#
+PlayerUI(), MinimaxPlayer_01(2)

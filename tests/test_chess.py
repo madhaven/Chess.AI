@@ -87,11 +87,16 @@ def test_notation():
             assert Chess.notation((x, y)) == cell
 
 def test_piecePoints():
-    assert Chess.piecePoints('Q') == 9
-    assert Chess.piecePoints('R') == 5
-    assert Chess.piecePoints('N') == 3
-    assert Chess.piecePoints('B') == 3
-    assert Chess.piecePoints('P') == 1
+    assert Chess.piecePoints('bQ') == 9
+    assert Chess.piecePoints('wQ') == -9
+    assert Chess.piecePoints('bR') == 5
+    assert Chess.piecePoints('wR') == -5
+    assert Chess.piecePoints('bN') == 3
+    assert Chess.piecePoints('wN') == -3
+    assert Chess.piecePoints('bB') == 3
+    assert Chess.piecePoints('wB') == -3
+    assert Chess.piecePoints('bP') == 1
+    assert Chess.piecePoints('wP') == -1
 
 def test_checkResult():
     game = Chess()

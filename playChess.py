@@ -1,5 +1,7 @@
 from Chess import Chess, Player
 from Players import PlayerGreedy, PlayerRandom
+from MiniMaxPlayer import MinimaxPlayer_02
+
 import pygame
 from os import sep
 
@@ -291,8 +293,8 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
 if __name__=='__main__':
 
     players = [
-        PlayerUI(),
-        PlayerGreedy(),
+        MinimaxPlayer_02(20),
+        MinimaxPlayer_02(20)
     ]
     player_white, player_black = players
     
