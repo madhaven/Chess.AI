@@ -268,6 +268,16 @@ def loadGame():
 def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
     pygame.time.wait(500)
     while not game.result:
+        drawBoard(game, False)
+        CLOCK.tick(FPS)
+        pygame.display.update()
+        pygame.time.wait(500)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
         player = white if game.isWhitesMove else black
         move = player.chooseMove(game)
         if game.pieceAt(move[0])[1] == 'P' and move[1][1] in (0, 7):
@@ -280,10 +290,16 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
 
 if __name__=='__main__':
 
+    players = [
+        PlayerUI(),
+        PlayerGreedy(),
+    ]
+    player_white, player_black = players
+    
     # Main Menu
     while True:
         DISPLAY.fill(BLACK)
-        blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main, white=PlayerUI(), black=PlayerGreedy())
+        blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main, white=player_white, black=player_black)
         blitText('Load Game', (CENTER[0], WINDIM[1]*2/3), font=FONTBIG, onclick=loadGame)
 
         events = pygame.event.get()
