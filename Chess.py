@@ -2,7 +2,7 @@ from copy import deepcopy
 from datetime import datetime
 from abc import ABC, abstractmethod
 import random
-import os
+from os import sep
 
 class Chess:
     '''Contains all logic for a chess game'''
@@ -426,12 +426,18 @@ class Chess:
         if game.pieceAt(newCell) == None: return False
         return game.pieceAt(oldCell)[0] != game.pieceAt(newCell)[0]
 
-    def save(game, filename:str=None):
+    def save(game, filename:str=None, comments=None):
         '''Saves the log of the game into a text file'''
-        now = datetime.now()
+        
         if not filename:
-            filename = 'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)
-        open(filename, 'w').write(game.gameString)
+            now = datetime.now()
+            filename = sep.join(['assets', 'sampleGames',
+                'chess_%d%02d%02d%02d%02d%02d.save.txt'%(now.year, now.month, now.day, now.hour, now.minute, now.second)])
+        
+        with open(filename, 'w') as file:
+            file.write(game.gameString + '\n')
+            if comments:
+                file.write(comments + '\n')
         return filename
     
     @staticmethod

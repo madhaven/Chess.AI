@@ -209,6 +209,7 @@ class PlayerUI(Player):
 
 def gameOverScreen(game:Chess):
     result = {
+        0: 'ERROR',
         -1: 'Black Wins',
         1: 'White Wins',
         2: 'Game Quit', # TODO: add white/black wins too 2/-2
@@ -268,34 +269,39 @@ def loadGame():
         CLOCK.tick(FPS)
 
 def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
-    pygame.time.wait(500)
-    while not game.result:
-        drawBoard(game, False)
-        CLOCK.tick(FPS)
-        pygame.display.update()
-        pygame.time.wait(500)
+    try:
+        while not game.result:
+            drawBoard(game)
+            CLOCK.tick(FPS)
+            pygame.display.update()
+            pygame.time.wait(500)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    quit()
 
-        player = white if game.isWhitesMove else black
-        move = player.chooseMove(game)
-        if game.pieceAt(move[0])[1] == 'P' and move[1][1] in (0, 7):
-            promoteToPiece = player.choosePromotion(game)
-        else:
-            promoteToPiece = None
-        log(celllogs, move)
-        game = game.makeMove(*move, promoteTo=promoteToPiece)
-    gameOverScreen(game)
+            player = white if game.isWhitesMove else black
+            move = player.chooseMove(game)
+            if game.pieceAt(move[0])[1] == 'P' and move[1][1] in (0, 7):
+                promoteToPiece = player.choosePromotion(game)
+            else:
+                promoteToPiece = None
+            log(celllogs, move)
+            game = game.makeMove(*move, promoteTo=promoteToPiece)
+        
+        gameDescription = f'{type(white).__name__} vs {type(black).__name__}'
+        game.save(comments=gameDescription)
+    except SystemExit:
+        raise SystemExit
+    except Exception as e:
+        # print(e)
+        game.save('ERROR_FILE.save.txt')
+        gameOverScreen(game)
 
 if __name__=='__main__':
 
-    players = [
-        MinimaxPlayer_02(20),
-        MinimaxPlayer_02(20)
-    ]
+    players = [ PlayerUI(), PlayerUI() ]
     player_white, player_black = players
     
     # Main Menu
