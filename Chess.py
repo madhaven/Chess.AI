@@ -436,7 +436,7 @@ class Chess:
     def loadFrom(filename, promotion=None) -> "Chess":
         '''Loads a game state from a .save version file.'''
         lines = open(filename, 'r').readlines()
-        game = Chess(gameString=lines[0], promotion=promotion)
+        game = Chess(gameString=lines[0])
         print('game initialized', game)
         return game
 
