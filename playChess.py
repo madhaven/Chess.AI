@@ -1,6 +1,6 @@
 from Chess import Chess, Player
-from Players import PlayerGreedy, PlayerRandom
-from MiniMaxPlayer import MinimaxPlayer_02
+from Players import *
+from MiniMaxPlayer import *
 
 import pygame
 from os import sep
@@ -23,6 +23,16 @@ BLACK, GREY, WHITE = (0,0,0), (128, 128, 128), (255, 255, 255)
 GREYDARK, GREYLIGHT, OFFWHITE = (64, 64, 64), (170, 170, 170), (180, 180, 180)
 GREEN , RED_CHECK= (0, 255, 0), (192, 32, 32)
 BORDER1, BORDER2, BORDER3 = 1, 2, 3
+GAME_RESULT = {
+    0: 'ERROR',
+    -1: 'Black Wins',
+    1: 'White Wins',
+    2: 'Game Quit', # TODO: add white/black wins too 2/-2
+    3: 'Stalemate',
+    4: 'Draw: Insufficient Material',
+    5: 'Draw: 3-fold repetition',
+    6: 'Draw: 50-move rule',
+}
 
 celllogs = False#True#
 def log(label, *s, wait=False):
@@ -208,16 +218,7 @@ class PlayerUI(Player):
             CLOCK.tick(FPS)
 
 def gameOverScreen(game:Chess):
-    result = {
-        0: 'ERROR',
-        -1: 'Black Wins',
-        1: 'White Wins',
-        2: 'Game Quit', # TODO: add white/black wins too 2/-2
-        3: 'Stalemate',
-        4: 'Draw: Insufficient Material',
-        5: 'Draw: 3-fold repetition',
-        6: 'Draw: 50-move rule',
-    }[game.result]
+    GAME_RESULT[game.result]
     DISPLAY.fill(BLACK)
     drawBoard(game)
     pygame.display.update()
@@ -290,8 +291,12 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
             log(celllogs, move)
             game = game.makeMove(*move, promoteTo=promoteToPiece)
         
-        gameDescription = f'{white.getName()} vs {black.getName()}'
+        gameDescription = '\n'.join([
+            GAME_RESULT[game.result],
+            f'white: {white.getName()}',
+            f'black: {black.getName()}' ])
         game.save(comments=gameDescription)
+        gameOverScreen(game)
     except SystemExit:
         raise SystemExit
     except Exception as e:

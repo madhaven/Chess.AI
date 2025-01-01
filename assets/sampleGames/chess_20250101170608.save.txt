@@ -1,0 +1,4 @@
+Ph2-h3 Pg7-g5 Pd2-d4 Nb8-a6 Nb1-d2 Ng8-h6 Pe2-e4 Na6-b4 Pc2-c3 Nb4-c6 Pd4-d5 Nc6-e5 Pg2-g3 Nh6-g8 Pb7-b6 Pa2-a4 Ph7-h5 Qd1-b3 Bc8-a6 Pc3-c4 Ne5-g6 Ke2-e1 Qd8-c8 Rh1-h2 Pf7-f6 Qb3-b4 Nd2-b3 Qc8-e8 Ng1-e2 Ng8-h6 Qb4-d2 Ba6-b7 Ke1-d1 Ra8-c8 Rh2-h1 Rc8-d8 Kd1-e1 Kf7-g7 Pf2-f3 Bb7-a6 Ke1-f2 Rd8-a8 Ra1-b1 Kg7-g8 Qd2-c2 Pd7-d6 Rh1-g1 Qe8-d7 Pa4-a5 Kg8-h7 Qc2-d3 Ra8-e8 Bc1-e3 Re8-c8 Ne2-c3 Rc8-a8 Rb1-c1 Kh7-g7 Qd3-d4 Ra8-e8 Nc3-a2 Kg7-h7 Bf1-e2 Pb6-b5 Rc1-a1 Pe7-e5 Qd4-d3 Qd7-g7 Ra1-d1 Re8-c8 Qd3-c3 Qg7-e7 Rd1-a1 Qe7-f7 Rg1-e1 Qf7-e7 Na2-b4 Ba6-b7 Pc4xPb5 Rh8-g8 Qc3-d2 Nh6-f7 Kf2-g2 Rg8-g7 Qd2-c2 Bb7-a8 Re1-g1 Rc8-d8 Be2-d1 Ba8-b7 Qc2-c3 Ng6-h4 Kg2-h1 Nh4-g6 Be3xPa7 Rd8-c8 Bd1-e2 Qe7-d7 Nb4-c2 Qd7xPh3#
+Black Wins
+white: MinimaxPlayer_03(40)
+black: MinimaxPlayer_03(5)
