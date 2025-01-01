@@ -6,12 +6,8 @@ import os
 
 class Chess:
     '''Contains all logic for a chess game'''
-    def __init__(self, promotion=None, gameString=None):
-        """intializes the board and sets the state of the board.
-
-        The `promotion` argument expects a function that returns a character in (Q, R, B, N).
-        This function will be used when a pawn is to be promoted. If choosePiece defaults to None,
-        the pawn will be promoted to Queen."""
+    def __init__(self, gameString=None):
+        """intializes the board and sets the state of the board."""
         if not gameString:
             self.board = [
                 ['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'], #a8 - h8
@@ -22,13 +18,12 @@ class Chess:
             self.result = None
             self.wPoints = 0
             self.bPoints = 0
-            self.choosePiece = promotion if promotion else lambda: input('Chose a piece to promote to: ')[0]
             self.log = []
             self.gameString = ''
             self.history = []
             self.fiftyCounter = 0
         else:
-            game = Chess(promotion=promotion)
+            game = Chess()
             for i, move in enumerate(gameString.split()):
                 if move == 'O-O-O': a, b = (4, 7 if i%2==0 else 0), (2, 7 if i%2==0 else 0)
                 elif move == 'O-O': a, b = (4, 7 if i%2==0 else 0), (6, 7 if i%2==0 else 0)
@@ -43,7 +38,6 @@ class Chess:
             self.result = game.result
             self.wPoints = game.wPoints
             self.bPoints = game.bPoints
-            self.choosePiece = game.choosePiece
             self.log = game.log
             self.gameString = game.gameString
             self.history = game.history
@@ -62,11 +56,18 @@ class Chess:
         string += '   a b c d e f g h\n'
         return string
     
-    def _coords_(game, string) -> tuple:
+    def __eq__(game, game2: "Chess") -> bool:
+        if game.gameString != game.gameString:
+            return False
+        return True
+
+    @staticmethod
+    def coords(cell: str) -> tuple:
         '''Accepts a string Chess-cell location and returns x-y tuple indices on the board'''
-        return (ord(string[0].lower())-97, 8-int(string[1]))
+        return (ord(cell[0].lower())-97, 8-int(cell[1]))
     
-    def _notation_(game, cell) -> str:
+    @staticmethod
+    def notation(cell) -> str:
         '''Accepts a duplet cell, array location and returns a string notation of the cell'''
         return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
@@ -87,6 +88,12 @@ class Chess:
             fen += '/'
         return fen[:-1]
     
+    @staticmethod
+    def piecePoints(piece: str):
+        '''returns the points for a piece'''
+        p = piece[1] if len(piece) == 2 else piece
+        return { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1 }[p]
+
     def checkResult(game) -> int:
         """
         checks for a result from the board.
@@ -122,6 +129,8 @@ class Chess:
                     elif piece[0]=='w':
                         wp.append(piece[1])
                         if piece[1]=='B': wbcol = (x+y)%2
+            # TODO: make sure no takes are possible
+            # Currently even if king can cut the last bishop, game is draw
             if bp==wp==[] or \
                 (bp==[] and wp==['B']) or (bp==['B'] and wp==[]) or \
                 (bp==[] and wp==['N']) or (bp==['N'] and wp==[]) or \
@@ -151,9 +160,9 @@ class Chess:
                     return True
         return False
 
-    def pieceAt(game, cell):
+    def pieceAt(game, cell: tuple[int, int]):
         if type(cell) == str:
-            x, y = game._coords_(cell)
+            x, y = game.coords(cell)
         else:
             x, y = cell[0], cell[1]
         return game.board[y][x]
@@ -169,12 +178,12 @@ class Chess:
             (piece, move) for piece in pieces
             for move in game.movesOf(piece)]
     
-    def legalMoves(self, cell, piece=None) -> list:
+    def legalMoves(self, cell, piece=None) -> list[tuple[int, int]]:
         '''Returns a list of legal moves for a piece in the cell.
         if piece (PRNBQK) is explicitly specified the rules of that piece would apply.
         This method does not consider the state of the game, only the position of the piece.
         Intended to be used when making PreMoves.'''
-        if type(cell)==str: x, y = self._coords_(cell)
+        if type(cell)==str: x, y = self.coords(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
             if not self.board[y][x]: return []
@@ -228,7 +237,7 @@ class Chess:
         This method simply refines the moves from legalMoves according to the game.
         This method Does not however check if the move is completely possible.'''
         
-        if type(cell)==str: x, y = self._coords_(cell)
+        if type(cell)==str: x, y = self.coords(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
             if not self.board[y][x]: return []
@@ -283,7 +292,7 @@ class Chess:
     def movesOf(game, cell, piece=None) -> list:
         '''implements a check to make sure a piece can move from its current location.
         Also adds special checks for the pawn and the king's moves'''
-        if type(cell)==str: x, y = game._coords_(cell)
+        if type(cell)==str: x, y = game.coords(cell)
         else: x, y = cell[0], cell[1]
         if not piece:
             if not game.pieceAt((x, y)): return []
@@ -332,18 +341,18 @@ class Chess:
     
     def hasMoved(game, cell) -> bool:
         '''Returns a boolean that tells wether or not a move has been made from the cell during the game'''
-        if type(cell)==str: x, y = game._coords_(cell)
+        if type(cell)==str: x, y = game.coords(cell)
         else: x, y = cell[0], cell[1]
         for move in game.log:
             if list(move[0]) == list((x, y)):
                 return True
         return False
     
-    def makeMove(game, oldCell, newCell, _testMove=False, promoteTo=None) -> "Chess":
+    def makeMove(game, oldCell, newCell, _testMove=False, promoteTo='Q') -> "Chess":
         '''Returns an instance of the board after having made the move\n
         `_testMove` is intended for blocking user action in case of possible pawn promotions'''
-        if type(oldCell) == str: oldCell = game._coords_(oldCell)
-        if type(newCell) == str: newCell = game._coords_(newCell)
+        if type(oldCell) == str: oldCell = game.coords(oldCell)
+        if type(newCell) == str: newCell = game.coords(newCell)
         
         if not game.pieceAt(oldCell) \
         or (game.pieceAt(oldCell)[0]=='w' and not game.isWhitesMove) \
@@ -366,7 +375,7 @@ class Chess:
             if game.pieceAt(newCell)[0] != current_side:
                 # piece acquired
                 g.fiftyCounter = 0
-                g.gameString += ' '+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'x'+game.pieceAt(newCell)[1]+game._notation_(newCell)
+                g.gameString += ' '+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'x'+game.pieceAt(newCell)[1]+game.notation(newCell)
                 # TODO: add points for piece acquired
             else: # cannot move to own piece's square
                 return game
@@ -376,7 +385,7 @@ class Chess:
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
             g.fiftyCounter = 0
-            g.gameString += ' '+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'x'+game._notation_(newCell)
+            g.gameString += ' '+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'x'+game.notation(newCell)
             g.board[oldCell[1]][newCell[0]] = None
             # TODO: add game points for en passant
         
@@ -394,11 +403,11 @@ class Chess:
                     g.gameString += ' '+'O-O'
 
         else: g.gameString += \
-            (' ' if g.gameString else '')+game.pieceAt(oldCell)[1]+game._notation_(oldCell)+'-'+game._notation_(newCell)
+            (' ' if g.gameString else '')+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'-'+game.notation(newCell)
         
         #pawn promotion
         if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
-            newPiece = 'Q' if _testMove else (promoteTo if promoteTo else g.choosePiece())
+            newPiece = 'Q' if _testMove else promoteTo
             if newPiece in 'RNBQ':
                 g.fiftyCounter = 0
                 g.board[newCell[1]][newCell[0]] = current_side + newPiece
