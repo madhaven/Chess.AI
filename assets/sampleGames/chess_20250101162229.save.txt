@@ -1,0 +1,2 @@
+Pb2-b4 Pe7-e5 Pb4-b5 Pb7-b6 Bc1-b2 Nb8-c6 Nb1-c3 Bc8-b7 Pe2-e3 Pa7-a6 Qd1-g4 Ng8-f6 Qg4-e2 Bf8-d6 Bb2-c1 Ph7-h5 Qe2-d3 Nf6-g4 Ph2-h3 Nc6-b4 Qd3-c4 Pa6-a5 Pe3-e4 Qd8-f6 Pa2-a3 Qf6xPf2 Ng4-e3 Pd2xNe3 Qf2xPc2 Kd1-e1 Nb4-d3 Bf1xNd3 Qc2-b2 Bc1xQb2 Rh8-h6 Pa3-a4 Rh6-g6 Ng1-f3 Rg6xPg2 Bb2-c1 O-O-O Ra1-b1 Rd8-h8 Ke1-d1 Rh8-h6 Rb1-b3 Rh6-f6 Nf3-h4 Rg2-g3 Bd3-c2 Pg7-g5 Bc1-b2 Pg5xNh4 Kd1-d2 Rf6-f2 Kd2-d3 Rg3-g2 Nc3-d1 Rf2xBc2 Qc4xPf7 Kc8-b8 Qf7-e8 Bb7-c8 Bb2-a1 Rg2-d2#
+MinimaxPlayer_03 vs PlayerUI

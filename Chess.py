@@ -451,6 +451,13 @@ class Chess:
 class Player(ABC):
     '''Contains implementations of a players functionality.'''
 
+    def getName(self) -> str:
+        '''
+        return a string representing the instance.\n
+        This will be used to identify the player in the logs
+        '''
+        return self.__class__.__name__
+
     @abstractmethod
     def chooseMove(self, game:Chess) -> list:
         pass

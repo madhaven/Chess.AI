@@ -87,10 +87,13 @@ class MinimaxPlayer_02(MinimaxPlayer_01):
                 points += pieceValue
         return points + 10 * maxPiece
 
-class MinimaxPlayer_03():
+class MinimaxPlayer_03(Player):
 
     def __init__(self, depth):
         self.depth = depth
+    
+    def getName(self) -> str:
+        return self.__class__.__name__ + f'({self.depth})'
     
     def gameValue(self, game: Chess) -> int:
         attackTargets = [ move[1] for move in game.getMoves() if game.isAttackMove(move[0], move[1]) ]
@@ -126,3 +129,6 @@ class MinimaxPlayer_03():
         best_moves = [move for move in value_map if value_map[move] == best_value]
         best_move = choice(best_moves)
         return best_move
+
+    def choosePromotion(self, game: Chess) -> str:
+        return 'Q'

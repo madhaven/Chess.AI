@@ -1,0 +1,3 @@
+Pc2-c4 Pe7-e5 Qd1-b3 Bf8-c5 Pa2-a4 Qd8-f6 Ph2-h3 Qf6xPf2 Qf2xBf1 Kd1-c2 Pd7-d5 Qb3-b5 Bc8-d7 Qb5xBc5 Pc7-c6 Ph3-h4 Nb8-a6 Qc5-e3 Bd7-f5 Pd2-d3 Qf1xPg2 Qe3xPe5 Ng8-e7 Qe5xNe7 Ke8xQe7 Bc1-g5 Pf7-f6 Bg5xPf6 Pg7xBf6 Rh1-h2 Qg2xRh2 Ng1-f3 Qh2xPe2 Nf3-d2 Bf5xPd3 Kc2-b3 Na6-c5 Kb3-b4 Ke7-d6 Nb1-a3 Qe2xNd2#
+MinimaxPlayer_03(40) vs PlayerUI
+board evaluation is a bit greedy as it sacrificed Queen for no advantage

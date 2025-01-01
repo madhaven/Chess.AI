@@ -290,7 +290,7 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
             log(celllogs, move)
             game = game.makeMove(*move, promoteTo=promoteToPiece)
         
-        gameDescription = f'{type(white).__name__} vs {type(black).__name__}'
+        gameDescription = f'{white.getName()} vs {black.getName()}'
         game.save(comments=gameDescription)
     except SystemExit:
         raise SystemExit
