@@ -116,7 +116,7 @@ def test_checkResult():
             assert game.gameString [-1] == '#'
         assert game.checkResult() == 3
     
-    game.history = [game._FEN_()]*2
+    game.history = [game.FEN()]*2
     assert game.checkResult() == 5
 
     game.history = []
@@ -196,7 +196,7 @@ def test_legalMoves():
 
 def test_makeMove():
     game = Chess()
-    game.makeMove('a2', 'a4')
+    game = game.makeMove('a2', 'a4')
     game2 = Chess('Pa2-a4')
     assert game == game2
     # TODO add other cases

@@ -173,12 +173,12 @@ class PlayerUI(Player):
                 # no moves made
                 selectedPiece = game.pieceAt(activeCell)
                 if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w') or (not game.isWhitesMove and selectedPiece[0]=='b')):
-                    options = game.movesOf(activeCell)
+                    options = game.movesOfCell(activeCell)
             else:
                 # selected cell
                 selectedPiece = game.pieceAt(move[0])
                 if selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
-                    options = game.movesOf(move[0])
+                    options = game.movesOfCell(move[0])
                     if not options:
                         # piece can't move: cancel selection
                         move = [None, None]
@@ -193,7 +193,7 @@ class PlayerUI(Player):
                         options, move = [], [None, None]
                     elif selectedPiece and ((game.isWhitesMove and selectedPiece[0]=='w' ) or (not game.isWhitesMove and selectedPiece[0]=='b')):
                         # clicked another piece on same side
-                        options = game.movesOf(move[0])
+                        options = game.movesOfCell(move[0])
                         move = [move[1], None]
                     elif tuple(move[1]) in options:
                         # valid move made
@@ -218,7 +218,7 @@ class PlayerUI(Player):
             CLOCK.tick(FPS)
 
 def gameOverScreen(game:Chess):
-    GAME_RESULT[game.result]
+    result = GAME_RESULT[game.result]
     DISPLAY.fill(BLACK)
     drawBoard(game)
     pygame.display.update()
@@ -306,7 +306,7 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
 
 if __name__=='__main__':
 
-    players = [ PlayerUI(), PlayerUI() ]
+    players = [ PlayerUI(), MinimaxPlayers.latest()(1) ]
     player_white, player_black = players
     
     # Main Menu

@@ -27,14 +27,14 @@ game = Chess.loadFrom(r'file')
 # find all available moves of the player
 >>> allMoves = game.getMoves()
 
-# find moves that a piece in a particular cell(a2) could make
->>> moves = game.movesOf('a2')
+# find default legal moves of a cell
+>>> moves = game.legalMoves('a2')
 
 # find moves a cell could possibly attack
 >>> moves = game.checkableMoves('a2')
 
-# find default legal moves of a cell
->>> moves = game.legalMoves('a2')
+# find moves that a piece in a particular cell(a2) could make
+>>> moves = game.movesOfCell('a2')
 
 # make a move
 >>> newGameState = game.makeMove('a2', 'a4')

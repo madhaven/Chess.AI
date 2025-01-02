@@ -2,6 +2,17 @@ from Chess import Chess, Player
 from Players import PlayerRandom
 from random import choice
 
+class MinimaxPlayers:
+    
+    @staticmethod
+    def latest():
+        return [
+            MinimaxPlayer_00
+            , MinimaxPlayer_01
+            , MinimaxPlayer_02
+            , MinimaxPlayer_03
+        ][-1]
+
 class MinimaxPlayer_00(PlayerRandom):
     '''
     Maximizes the "opportunity" of taking pieces.
@@ -88,23 +99,24 @@ class MinimaxPlayer_02(MinimaxPlayer_01):
         return points + 10 * maxPiece
 
 class MinimaxPlayer_03(Player):
+    '''board evaluation is a bit greedy as it sacrificed Queen for no advantage'''
 
     def __init__(self, depth):
         self.depth = depth
     
     def getName(self) -> str:
-        return self.__class__.__name__ + f'({self.depth})'
+        return self.__class__.__name__ + f'(depth:{self.depth})'
     
     def gameValue(self, game: Chess) -> int:
-        attackTargets = [ move[1] for move in game.getMoves() if game.isAttackMove(move[0], move[1]) ]
+        attackTargets = [ move[1] for move in game.getMoves() if game.isAttackMove(*move) ]
         targetPieces = [ game.pieceAt(cell) for cell in attackTargets ]
 
         # attack options
-        points = sum([game.piecePoints(piece) for piece in targetPieces])
+        points = sum([game.piecePoints(piece) for piece in targetPieces]) or 0
 
         # points for previous take
         if game.history:
-            lastMove = game.history[-1]
+            lastMove = game.gameString.split()[-1]
             if 'x' in lastMove:
                 piece = ("w" if game.isWhitesMove else "b") + lastMove.split('x')[1][0]
                 points += (game.piecePoints(piece) * 10)
@@ -124,7 +136,7 @@ class MinimaxPlayer_03(Player):
     def chooseMove(self, game: Chess) -> list:
         moves = game.getMoves()
         value_map = { move: self.minimax(game.makeMove(*move)) for move in moves }
-        values = value_map.values()
+        values = set(value_map.values())
         best_value = max(values) if game.isWhitesMove else min(values)
         best_moves = [move for move in value_map if value_map[move] == best_value]
         best_move = choice(best_moves)

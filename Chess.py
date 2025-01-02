@@ -57,7 +57,7 @@ class Chess:
         return string
     
     def __eq__(game, game2: "Chess") -> bool:
-        if game.gameString != game.gameString:
+        if game.gameString != game2.gameString:
             return False
         return True
 
@@ -71,7 +71,15 @@ class Chess:
         '''Accepts a duplet cell, array location and returns a string notation of the cell'''
         return 'abcdefgh'[cell[0]]+str(8-cell[1])
     
-    def _FEN_(game) -> str:
+    @staticmethod
+    def piecePoints(piece: str):
+        '''returns the points for a piece.\n
+        White pieces give negative values.'''
+        value = { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1 }[piece[1]]
+        if piece[0] == 'w': value *= -1
+        return value
+    
+    def FEN(game) -> str:
         '''Returns a Forsyth-Edwards Notation (FEN) of the board without game information.
         Saving boards as strings is expected to speed up history checks when compared to arrays.'''
         fen = ''
@@ -87,14 +95,6 @@ class Chess:
             if emptyCells: fen += str(emptyCells)
             fen += '/'
         return fen[:-1]
-    
-    @staticmethod
-    def piecePoints(piece: str):
-        '''returns the points for a piece.\n
-        White pieces give negative values.'''
-        value = { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1 }[piece[1]]
-        if piece[0] == 'w': value *= -1
-        return value
 
     def checkResult(game) -> int:
         """
@@ -117,7 +117,7 @@ class Chess:
                 else: game.result = 1
                 game.gameString += '#'
             else: game.result = 3
-        elif game.history.count(game._FEN_())>=2:
+        elif game.history.count(game.FEN())>=2:
             game.result = 5
         else:
             bp, wp = [], []
@@ -156,37 +156,34 @@ class Chess:
             break
         for checkPiece in ['P', 'RQ', 'BQ', 'N', 'K']:
             for coord in game.checkableMoves(king, check_side+checkPiece[0]):
-                #essentially places a piece in kings cell and finds same enemy pieces in sight
+                # places a piece in kings cell and finds same enemy pieces in sight
                 piece = game.pieceAt(coord)
                 if piece and piece[0]!=check_side and piece[1] in checkPiece:
                     return True
         return False
 
-    def pieceAt(game, cell: tuple[int, int]):
-        if type(cell) == str:
-            x, y = game.coords(cell)
-        else:
-            x, y = cell[0], cell[1]
+    def pieceAt(game, cell: str|tuple[int, int]):
+        x, y = game.coords(cell) if isinstance(cell, str) else cell
         return game.board[y][x]
 
-    def getMoves(game, current_side=None) -> list:
+    def getMoves(game, currentSide=None) -> list:
         '''Returns a list of possible moves (pairs of xy coordinate pairs)'''
-        if not current_side: current_side = 'w' if game.isWhitesMove else 'b'
+        if not currentSide: currentSide = 'w' if game.isWhitesMove else 'b'
         pieces = [
             (x, y) for y, row in enumerate(game.board)
             for x, cell in enumerate(row)
-            if cell != None and cell[0] == current_side]
+            if cell != None and cell[0] == currentSide]
         return [
             (piece, move) for piece in pieces
-            for move in game.movesOf(piece)]
+            for move in game.movesOfCell(piece)]
     
     def legalMoves(self, cell, piece=None) -> list[tuple[int, int]]:
         '''Returns a list of legal moves for a piece in the cell.
         if piece (PRNBQK) is explicitly specified the rules of that piece would apply.
         This method does not consider the state of the game, only the position of the piece.
         Intended to be used when making PreMoves.'''
-        if type(cell)==str: x, y = self.coords(cell)
-        else: x, y = cell[0], cell[1]
+
+        x, y = self.coords(cell) if isinstance(cell, str) else cell
         if not piece:
             if not self.board[y][x]: return []
             else: piece = self.board[y][x]
@@ -236,14 +233,13 @@ class Chess:
     
     def checkableMoves(self, cell, piece=None) -> list:
         '''Returns a list of squares eyed/targetted by a piece in the cell, 
-        This method simply refines the moves from legalMoves according to the game.
+        This method refines moves from legalMoves by ensuring no pieces block the way.
         This method Does not however check if the move is completely possible.'''
         
-        if type(cell)==str: x, y = self.coords(cell)
-        else: x, y = cell[0], cell[1]
+        x, y = self.coords(cell) if isinstance(cell, str) else cell
         if not piece:
-            if not self.board[y][x]: return []
-            else: piece = self.board[y][x]
+            piece = self.board[y][x]
+            if not piece: return []
         current_side = piece[0]
         ops, moves = [], self.legalMoves((x, y), piece)
 
@@ -284,21 +280,21 @@ class Chess:
                 if self.board[y+d][x-d]: break
 
         elif piece[1] == 'Q':
-            ops = self.checkableMoves((x, y), current_side+'B') + self.checkableMoves((x, y), current_side+'R')
+            ops = self.checkableMoves((x, y), current_side+'B') +\
+                self.checkableMoves((x, y), current_side+'R')
 
         elif piece[1] == 'K':
-            ops = [ op for op in moves if op[0]-x in (-1, 0, 1) ]
+            ops = moves # [ op for op in moves if op[0]-x in (-1, 0, 1) ]
             
         return ops
     
-    def movesOf(game, cell, piece=None) -> list:
-        '''implements a check to make sure a piece can move from its current location.
-        Also adds special checks for the pawn and the king's moves'''
-        if type(cell)==str: x, y = game.coords(cell)
-        else: x, y = cell[0], cell[1]
+    def movesOfCell(game, cell, piece=None) -> list:
+        '''The go to method to fetch the moves a cell can make\n
+        Fetchs the available moves, adds other checkable moves for pawns, castling moves and makes sure the move doesn't result in a check.'''
+        x, y = game.coords(cell) if isinstance(cell, str) else cell
         if not piece:
-            if not game.pieceAt((x, y)): return []
-            else: piece = game.pieceAt((x, y))
+            piece = game.pieceAt((x, y))
+            if not piece: return []
         
         current_side = piece[0]
         moves = []
@@ -343,18 +339,17 @@ class Chess:
     
     def hasMoved(game, cell) -> bool:
         '''Returns a boolean that tells wether or not a move has been made from the cell during the game'''
-        if type(cell)==str: x, y = game.coords(cell)
-        else: x, y = cell[0], cell[1]
+        if isinstance(cell, str): cell = game.coords(cell)
         for move in game.log:
-            if list(move[0]) == list((x, y)):
+            if list(move[0]) == list(cell):
                 return True
         return False
     
-    def makeMove(game, oldCell, newCell, _testMove=False, promoteTo:str='Q') -> "Chess":
+    def makeMove(game, oldCell, newCell, promoteTo:str='Q', _testMove=False) -> "Chess":
         '''Returns an instance of the board after having made the move\n
         `_testMove` is intended for blocking user action in case of possible pawn promotions'''
-        if type(oldCell) == str: oldCell = game.coords(oldCell)
-        if type(newCell) == str: newCell = game.coords(newCell)
+        if isinstance(oldCell, str): oldCell = game.coords(oldCell)
+        if isinstance(newCell, str): newCell = game.coords(newCell)
         
         if not game.pieceAt(oldCell) \
         or (game.pieceAt(oldCell)[0]=='w' and not game.isWhitesMove) \
@@ -368,7 +363,7 @@ class Chess:
         g.board[newCell[1]][newCell[0]] = g.board[oldCell[1]][oldCell[0]]
         g.board[oldCell[1]][oldCell[0]] = None
         g.isWhitesMove = not g.isWhitesMove
-        g.history.append(game._FEN_())
+        g.history.append(game.FEN())
 
         if game.pieceAt(oldCell)[1]=='P': g.fiftyCounter = 0
         else: g.fiftyCounter += 1
@@ -423,6 +418,7 @@ class Chess:
         return g
 
     def isAttackMove(game, oldCell, newCell):
+        # TODO add en passant
         if game.pieceAt(newCell) == None: return False
         return game.pieceAt(oldCell)[0] != game.pieceAt(newCell)[0]
 
