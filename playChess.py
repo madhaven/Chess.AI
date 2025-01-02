@@ -1,3 +1,4 @@
+import traceback
 from Chess import Chess, Player
 from Players import *
 from MiniMaxPlayer import *
@@ -300,7 +301,8 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
     except SystemExit:
         raise SystemExit
     except Exception as e:
-        # print(e)
+        print(f'error: {str(e)}')
+        print(traceback.format_exc())
         game.save('ERROR_FILE.save.txt')
         gameOverScreen(game)
 

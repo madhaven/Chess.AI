@@ -200,3 +200,9 @@ def test_makeMove():
     game2 = Chess('Pa2-a4')
     assert game == game2
     # TODO add other cases
+
+def test_enPassant_gamestring():
+    game = Chess('Pe2-e4 Pd7-d5 Pe4-e5 Pf7-f5')
+    # en passant move should be marked Pe5-Pf6
+    game = game.makeMove('e5', 'f6')
+    assert game.gameString == 'Pe2-e4 Pd7-d5 Pe4-e5 Pf7-f5 Pe5xPf6'

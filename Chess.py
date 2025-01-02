@@ -382,7 +382,7 @@ class Chess:
             newCell[1]==(game.log[-1][0][1]+game.log[-1][1][1])/2 and newCell[0]-oldCell[0]!=0 and\
             game.log[-1][0][0]==game.log[-1][1][0]==newCell[0]:
             g.fiftyCounter = 0
-            g.gameString += ' '+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'x'+game.notation(newCell)
+            g.gameString += ' '+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'xP'+game.notation(newCell)
             g.board[oldCell[1]][newCell[0]] = None
             # TODO: add game points for en passant
         

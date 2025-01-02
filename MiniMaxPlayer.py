@@ -122,16 +122,19 @@ class MinimaxPlayer_03(Player):
                 points += (game.piecePoints(piece) * 10)
         return points
 
-    def minimax(self, game: Chess, depth=1):
-        if depth == 1: return self.gameValue(game)
-
-        value_map = {
-            move: self.minimax(game.makeMove(move[0], move[1]), depth-1)
-            for move in game.getMoves()
-        }
-        values = value_map.values()
-        best_value = max(values) if game.isWhitesMove else min(values)
-        return best_value
+    def minimax(self, game: Chess, depth: int) -> int:
+        if depth == 0 or game.checkResult() != 0:
+            return self.gameValue(game)
+        
+        value = 0
+        if not game.isWhitesMove:
+            for move in game.getMoves():
+                value = max(value, self.minimax(game.makeMove(*move), depth-1))
+            return value
+        else:
+            for move in game.getMoves():
+                value = min(value, self.minimax(game.makeMove(*move), depth-1))
+            return value
     
     def chooseMove(self, game: Chess) -> list:
         moves = game.getMoves()
