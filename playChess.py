@@ -1,8 +1,9 @@
-import traceback
 from Chess import Chess, Player
 from Players import *
 from MiniMaxPlayer import *
 
+import traceback
+import threading
 import pygame
 from os import sep
 
@@ -44,8 +45,8 @@ def log(label, *s, wait=False):
 # load images
 loadPiece = lambda p: pygame.image.load(sep.join(['.', 'assets', 'pieces', p]))
 for piece in ['WP', 'BP', 'WK', 'BK', 'WQ', 'BQ', 'WR', 'BR', 'WB', 'BB', 'WN', 'BN']:
-    exec("%s = loadPiece('%s.png')"%(piece, piece))
-    exec("%s.convert()"%piece)
+    exec(f"{piece} = loadPiece('{piece}.png')")
+    exec(f"{piece}.convert()")
 
 def blitText(msg, center=CENTER, col=BLACK, bgcol=GREY, font=FONTSMALL, onclick=None, padding=(25, 12), **params):
     text = font.render(msg, True, col)
@@ -239,7 +240,6 @@ def gameOverScreen(game:Chess):
         pygame.display.update()
         CLOCK.tick(FPS)
 
-
 def loadGame():
     bgcol, col = BLACK, GREY
     txt = 'Drop your saved File here'
@@ -295,7 +295,8 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
         gameDescription = '\n'.join([
             GAME_RESULT[game.result],
             f'white: {white.getName()}',
-            f'black: {black.getName()}' ])
+            f'black: {black.getName()}'
+        ])
         game.save(comments=gameDescription)
         gameOverScreen(game)
     except SystemExit:
@@ -306,17 +307,10 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
         game.save('ERROR_FILE.save.txt')
         gameOverScreen(game)
 
-if __name__=='__main__':
-
-    player_white, player_black = [
-        PlayerUI(),
-        MinimaxPlayer_04(3),
-    ]
-    
-    # Main Menu
+def gameMenu(white: Player, black: Player):
     while True:
         DISPLAY.fill(BLACK)
-        blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main, white=player_white, black=player_black)
+        blitText('Play', (CENTER[0], WINDIM[1]/3), font=FONTBIG, onclick=main, white=white, black=black)
         blitText('Load Game', (CENTER[0], WINDIM[1]*2/3), font=FONTBIG, onclick=loadGame)
 
         events = pygame.event.get()
@@ -324,5 +318,13 @@ if __name__=='__main__':
             if event.type==pygame.QUIT:
                 pygame.quit()
                 quit()
+        
         pygame.display.update()
         CLOCK.tick(FPS)
+
+if __name__ == '__main__':
+    white, black = [
+        PlayerUI(),
+        MinimaxPlayer_04(3),
+    ]
+    gameMenu(white, black)
