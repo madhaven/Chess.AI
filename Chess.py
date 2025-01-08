@@ -75,7 +75,7 @@ class Chess:
     def piecePoints(piece: str):
         '''returns the points for a piece.\n
         White pieces give negative values.'''
-        value = { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1 }[piece[1]]
+        value = { 'Q':9, 'R':5, 'N':3, 'B':3, 'P':1, 'K':0 }[piece[1]]
         if piece[0] == 'w': value *= -1
         return value
     
@@ -402,8 +402,10 @@ class Chess:
         else: g.gameString += \
             (' ' if g.gameString else '')+game.pieceAt(oldCell)[1]+game.notation(oldCell)+'-'+game.notation(newCell)
         
-        #pawn promotion
-        if g.board[newCell[1]][newCell[0]][1]=='P' and newCell[1] in (0, 7):
+        #pawn promotion # TODO: None check is required to handle an unknown bug that results in g.board[.][.] to be None
+        if g.board[newCell[1]][newCell[0]] != None\
+                and g.board[newCell[1]][newCell[0]][1]=='P' \
+                and newCell[1] in (0, 7):
             newPiece = 'Q' if _testMove else promoteTo
             if newPiece in 'RNBQ':
                 g.fiftyCounter = 0
