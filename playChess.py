@@ -308,8 +308,10 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
 
 if __name__=='__main__':
 
-    players = [ PlayerUI(), MinimaxPlayers.latest()(1) ]
-    player_white, player_black = players
+    player_white, player_black = [
+        PlayerUI(),
+        MinimaxPlayer_04(3),
+    ]
     
     # Main Menu
     while True:
