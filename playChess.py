@@ -26,7 +26,7 @@ GREYDARK, GREYLIGHT, OFFWHITE = (64, 64, 64), (170, 170, 170), (180, 180, 180)
 GREEN , RED_CHECK= (0, 255, 0), (192, 32, 32)
 BORDER1, BORDER2, BORDER3 = 1, 2, 3
 GAME_RESULT = {
-    0: 'ERROR',
+    0: 'ERROR', # TODO: error / in progress?
     -1: 'Black Wins',
     1: 'White Wins',
     2: 'Game Quit', # TODO: add white/black wins too 2/-2
@@ -167,8 +167,7 @@ class PlayerUI(Player):
                     log(celllogs, 'activeCell : %s'%activeCell)
                 
                 elif event.type==pygame.QUIT:
-                    pygame.quit()
-                    quit()
+                    safe_quit()
             
             options=[]
             if not move[0]:
@@ -232,8 +231,7 @@ def gameOverScreen(game:Chess):
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+                safe_quit()
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 pygame.time.wait(500)
                 return
@@ -265,33 +263,89 @@ def loadGame():
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 return
             elif event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
+                safe_quit()
         pygame.display.update()
         CLOCK.tick(FPS)
+    
+def thread_choose_move(player: Player, game: Chess, info: dict):
+    info['move'] = player.chooseMove(game)
+    info['running'] = False
+    info['thread'] = False
 
-def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
+def thread_choose_promotion(player: Player, game: Chess, info: dict):
+    info['promotion'] = player.choosePromotion(game)
+    info['running'] = False
+    info['thread'] = False
+
+def start_thread(target, thread_info, *args, **kwargs):
+    try:
+        kwargs['info'] = thread_info
+        thread = threading.Thread(target=target, daemon=True, args=args, kwargs=kwargs)
+        thread_info['running'] = True
+        thread_info['thread'] = thread
+        thread.start()
+    except Exception as ex:
+        print(f"Error in threaded task: {ex}")
+        print(traceback.format_exc())
+
+def safe_quit():
+    threads = threading.enumerate()
+    main_thread = threading.main_thread()
+    for thread in threads:
+        if thread == main_thread:
+            continue
+        print('terminating', thread.name)
+        thread.join(0)
+    pygame.quit()
+    quit()
+
+def main(game: Chess = Chess(), white: Player = PlayerUI(), black: Player = PlayerUI()):
+    thread_info = { "move": None, "promotion": False, "running": False, "thread": False }
     try:
         while not game.result:
             drawBoard(game)
+            player = white if game.isWhitesMove else black
             CLOCK.tick(FPS)
             pygame.display.update()
-            pygame.time.wait(500)
 
+            # handle events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
+                    safe_quit()
+            
+            # skip other checks if thread is running
+            if thread_info['running']:
+                continue
 
-            player = white if game.isWhitesMove else black
-            move = player.chooseMove(game)
-            if game.pieceAt(move[0])[1] == 'P' and move[1][1] in (0, 7):
-                promoteToPiece = player.choosePromotion(game)
+            if thread_info['move'] is not None:
+                move = thread_info['move']
+            elif isinstance(player, PlayerUI):
+                thread_info['move'] = player.chooseMove(game)
+                continue
             else:
-                promoteToPiece = None
+                start_thread(thread_choose_move, thread_info, player, game)
+                pygame.time.wait(500)
+                continue
+
+            # TODO: REFINE PROMOTION MECHANISM
+            if game.pieceAt(move[0])[1] != 'P' or move[1][1]%7 != 0:
+                promotion = None
+            elif thread_info['promotion'] is not False:
+                promotion = thread_info['promotion']
+            elif isinstance(player, PlayerUI):
+                thread_info['promotion'] = player.choosePromotion(game)
+                continue
+            else:
+                start_thread(thread_choose_promotion, thread_info, player, game)
+                pygame.time.wait(500)
+                continue
+            
+            game = game.makeMove(*move, promoteTo=promotion)
+            thread_info['move'] = None
+            thread_info['promotion'] = False
             log(celllogs, move)
-            game = game.makeMove(*move, promoteTo=promoteToPiece)
         
+        # GAME OVER
         gameDescription = '\n'.join([
             GAME_RESULT[game.result],
             f'white: {white.getName()}',
@@ -299,8 +353,7 @@ def main(game:Chess=Chess(), white:Player=PlayerUI(), black:Player=PlayerUI()):
         ])
         game.save(comments=gameDescription)
         gameOverScreen(game)
-    except SystemExit:
-        raise SystemExit
+    
     except Exception as e:
         print(f'error: {str(e)}')
         print(traceback.format_exc())
@@ -316,8 +369,7 @@ def gameMenu(white: Player, black: Player):
         events = pygame.event.get()
         for event in events:
             if event.type==pygame.QUIT:
-                pygame.quit()
-                quit()
+                safe_quit()
         
         pygame.display.update()
         CLOCK.tick(FPS)
