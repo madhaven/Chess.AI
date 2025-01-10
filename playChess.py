@@ -71,6 +71,7 @@ def blitText(msg, center=CENTER, col=BLACK, bgcol=GREY, font=FONTSMALL, onclick=
 def drawBoard(game:Chess, activeCell=False, center=CENTER, boardSide=BOARDSIDE, options=[], move=[None, None]):
     '''Draws the Board, the pieces, available moves, etc.'''
 
+    DISPLAY.fill(BLACK)
     blitText('Save Game', onclick=game.save, center=((WINDIM[0]-BOARDSIDE)/4, WINDIM[1]/2))
 
     for x in range(4, -4, -1):
@@ -87,22 +88,22 @@ def drawBoard(game:Chess, activeCell=False, center=CENTER, boardSide=BOARDSIDE, 
 
             # display Piece
             # exec('piece=%s'%game.pieceAt(bcell).upper()) # doesn't work
-            if game.pieceAt(bcell):
-                if game.pieceAt(bcell) == 'wP': piece = WP
-                elif game.pieceAt(bcell) == 'bP': piece = BP
-                elif game.pieceAt(bcell) == 'wK': piece = WK
-                elif game.pieceAt(bcell) == 'bK': piece = BK
-                elif game.pieceAt(bcell) == 'wQ': piece = WQ
-                elif game.pieceAt(bcell) == 'bQ': piece = BQ
-                elif game.pieceAt(bcell) == 'wR': piece = WR
-                elif game.pieceAt(bcell) == 'bR': piece = BR
-                elif game.pieceAt(bcell) == 'wB': piece = WB
-                elif game.pieceAt(bcell) == 'bB': piece = BB
-                elif game.pieceAt(bcell) == 'wN': piece = WN
-                elif game.pieceAt(bcell) == 'bN': piece = BN
-                pr = piece.get_rect()
-                pr.center = (center[0]-x*CELLSIDE+CELLSIDE/2, center[1]-y*CELLSIDE+CELLSIDE/2)
-                DISPLAY.blit(piece, pr)
+            if not game.pieceAt(bcell): continue
+            if game.pieceAt(bcell) == 'wP': piece = WP
+            elif game.pieceAt(bcell) == 'bP': piece = BP
+            elif game.pieceAt(bcell) == 'wK': piece = WK
+            elif game.pieceAt(bcell) == 'bK': piece = BK
+            elif game.pieceAt(bcell) == 'wQ': piece = WQ
+            elif game.pieceAt(bcell) == 'bQ': piece = BQ
+            elif game.pieceAt(bcell) == 'wR': piece = WR
+            elif game.pieceAt(bcell) == 'bR': piece = BR
+            elif game.pieceAt(bcell) == 'wB': piece = WB
+            elif game.pieceAt(bcell) == 'bB': piece = BB
+            elif game.pieceAt(bcell) == 'wN': piece = WN
+            elif game.pieceAt(bcell) == 'bN': piece = BN
+            pr = piece.get_rect()
+            pr.center = (center[0]-x*CELLSIDE+CELLSIDE/2, center[1]-y*CELLSIDE+CELLSIDE/2)
+            DISPLAY.blit(piece, pr)
                 
     pygame.draw.rect(DISPLAY, GREY, 
         (center[0]-boardSide//2-BORDER3, center[1]-boardSide//2-BORDER3, boardSide+BORDER3*2, boardSide+BORDER3*2),
@@ -127,6 +128,25 @@ def drawBoard(game:Chess, activeCell=False, center=CENTER, boardSide=BOARDSIDE, 
             if game.isAttackMove(activeCell, option):
                 pygame.draw.circle(DISPLAY, color, (x, y), CELLSIDE/6, BORDER2)
 
+def drawPromotionMenu(game:Chess, activeOption:int=None, center=CENTER, boardSide=BOARDSIDE, pieceOrder:str='RQBN'):
+    promoStart = center[0] - boardSide // 2
+    bgColor = BLACK if game.isWhitesMove else WHITE
+    fgColor = WHITE if game.isWhitesMove else BLACK
+    pieceMap = {'R':[BR, WR], 'Q':[BQ, WQ], 'B':[BB, WB], 'N':[BN, WN] }
+    pieceWidth = boardSide // 4
+
+    DISPLAY.fill(bgColor)
+    pygame.draw.rect(DISPLAY, bgColor, (promoStart, center[1]-boardSide//2, boardSide, boardSide))
+    for i, piece in enumerate(pieceOrder):
+        icon = pieceMap[piece][game.isWhitesMove]
+        rect = icon.get_rect()
+        rect.center = (promoStart + ((i+.5) * pieceWidth), center[1])
+        DISPLAY.blit(icon, rect)
+
+    if activeOption != None:
+        rectParams = (promoStart + (activeOption * pieceWidth), center[1]-boardSide//8, pieceWidth, pieceWidth)
+        pygame.draw.rect(DISPLAY, fgColor, rectParams, BORDER1)
+
 class PlayerUI(Player):
 
     def chooseMove(self, game:Chess) -> list:
@@ -135,7 +155,6 @@ class PlayerUI(Player):
         activeCell = [4, 4]
 
         while True:
-            DISPLAY.fill(BLACK)
             events = pygame.event.get()
             for event in events:
 
@@ -143,7 +162,7 @@ class PlayerUI(Player):
                 if event.type == pygame.MOUSEMOTION:
                     x, y = ((event.pos[0]-(CENTER[0]-BOARDSIDE//2))//CELLSIDE, (event.pos[1]-(CENTER[1]-BOARDSIDE//2))//CELLSIDE)
                     if 0<=x<=7 and 0<=y<=7 and activeCell!=[x, y]:
-                        activeCell=[x, y]
+                        activeCell = [x, y]
                         log(celllogs, 'activeCell : %s'%activeCell)
                 
                 # click handles
@@ -207,20 +226,34 @@ class PlayerUI(Player):
             CLOCK.tick(FPS)
     
     def choosePromotion(self, game: Chess) -> str:
-        # return 'Q' #TODO: under construction
+        activeOption = None
+        pieceOrder = 'NQBR'
+
         while True:
-            pygame.draw.rect(DISPLAY, BLACK, (CENTER[0]-100, CENTER[1]-100, 200, 200))
-            events = pygame.event.get()
-            for event in events:
-                if event.type==pygame.MOUSEBUTTONDOWN:
-                    return 'Q'
-            
+            drawPromotionMenu(game=game, activeOption=activeOption, pieceOrder=pieceOrder)
             pygame.display.update()
             CLOCK.tick(FPS)
 
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.MOUSEMOTION:
+                    x = (event.pos[0]-(CENTER[0]-BOARDSIDE//2))//(CELLSIDE*2)
+                    if activeOption != x and 0 <= x < 4:
+                        activeOption = x
+                elif event.type == pygame.MOUSEBUTTONDOWN: return pieceOrder[activeOption]
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        if activeOption == None: activeOption = 0
+                        else: activeOption = (activeOption + 1) % 4
+                    elif event.key == pygame.K_LEFT:
+                        if activeOption == None: activeOption = 3
+                        else: activeOption = (activeOption - 1) % 4
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                        return pieceOrder[activeOption]
+                elif event.type == pygame.QUIT: safe_quit()
+
 def gameOverScreen(game:Chess):
     result = GAME_RESULT[game.result]
-    DISPLAY.fill(BLACK)
     drawBoard(game)
     pygame.display.update()
     pygame.time.wait(500)
@@ -242,7 +275,6 @@ def loadGame():
     bgcol, col = BLACK, GREY
     txt = 'Drop your saved File here'
     while True:
-        DISPLAY.fill(BLACK)
         drawBoard(Chess())
         blitText(txt, (CENTER[0], CENTER[1]*0.8), col, bgcol, FONTBIG)
         blitText('press escape to go back', (CENTER[0], CENTER[1]*1.2), col, bgcol)

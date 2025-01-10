@@ -421,7 +421,7 @@ class Chess:
 
     def isAttackMove(game, oldCell, newCell):
         # TODO add en passant
-        if game.pieceAt(newCell) == None: return False
+        if game.pieceAt(newCell) == None or game.pieceAt(oldCell) == None: return False
         return game.pieceAt(oldCell)[0] != game.pieceAt(newCell)[0]
 
     def save(game, filename:str=None, comments=None):
