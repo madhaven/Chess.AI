@@ -6,7 +6,7 @@ from os import sep
 
 class Chess:
     '''Contains all logic for a chess game'''
-    def __init__(self, gameString=None):
+    def __init__(self, gameString:str=None):
         """intializes the board and sets the state of the board."""
         if not gameString:
             self.board = [
@@ -19,7 +19,7 @@ class Chess:
             self.wPoints = 0
             self.bPoints = 0
             self.log = []
-            self.gameString = ''
+            self.gameString:str = ''
             self.history:list[str] = []
             self.fiftyCounter = 0
         else:
@@ -39,7 +39,7 @@ class Chess:
             self.wPoints = game.wPoints
             self.bPoints = game.bPoints
             self.log = game.log
-            self.gameString = game.gameString
+            self.gameString:str = game.gameString
             self.history = game.history
             self.fiftyCounter = game.fiftyCounter
     
@@ -405,7 +405,7 @@ class Chess:
         #pawn promotion # TODO: None check is required to handle an unknown bug that results in g.board[.][.] to be None
         if g.board[newCell[1]][newCell[0]] != None\
                 and g.board[newCell[1]][newCell[0]][1]=='P' \
-                and newCell[1] in (0, 7):
+                and newCell[1]%7 == 0:
             newPiece = 'Q' if _testMove else promoteTo
             if newPiece in 'RNBQ':
                 g.fiftyCounter = 0
@@ -421,7 +421,7 @@ class Chess:
 
     def isAttackMove(game, oldCell, newCell):
         # TODO add en passant
-        if game.pieceAt(newCell) == None: return False
+        if game.pieceAt(newCell) == None or game.pieceAt(oldCell) == None: return False
         return game.pieceAt(oldCell)[0] != game.pieceAt(newCell)[0]
 
     def save(game, filename:str=None, comments=None):
