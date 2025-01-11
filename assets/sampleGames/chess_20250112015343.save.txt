@@ -1,0 +1,4 @@
+Pe2-e4 Pd7-d5 Pe4-e5 Bc8-e6 Pd2-d4 Pa7-a5 Ng1-f3 Be6-f5 Nb1-a3 Pf7-f6 Bc1-f4 Bf5-g6 Bf1-d3 Pf6-f5 Qd1-e2 Pe7-e6 O-O Pc7-c6 Ph2-h4 Ph7-h6 Pg2-g3 Pc6-c5 Pc2-c3 Ph6-h5 Rf1-d1 Rh8-h7 Nf3-g5 Qd8-d7 Ng5xRh7 Bg6xNh7 Bd3-b5 Pc5-c4 Bb5xQd7 Nb8xBd7 Na3-b5 Ra8-a7 Nb5xRa7 Qe2xPh5 Bf8-e7 Qh5xBh7 Pb7-b5 Qh7xNg8 Be7-f8 Qg8xPe6 Pa5-a4 Na7-c6 Kd8-c8 Qe6-e8 Kc8-c7 Nc6-d8 Bf8-e7 Qe8xBe7 Kc7-b6 Qe7-d6 Qd6xNd7 Ka7-a6 Qd7-b7 Qb7-a7#
+White Wins
+white: PlayerUI
+black: MinimaxPlayer_04(depth:3)

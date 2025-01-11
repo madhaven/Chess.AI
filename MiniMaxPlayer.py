@@ -153,7 +153,7 @@ class MinimaxPlayer_03(Player):
         return 'Q'
 
 class MinimaxPlayer_04(MinimaxPlayer_03):
-    '''trying to implement an alpha-beta pruning this time.
+    '''trying to implement an alpha-beta pruning this time: performance improved
     also added a value estimation that's unbiased on which side is playing.'''
 
     def __init__(self, depth):
@@ -183,7 +183,7 @@ class MinimaxPlayer_04(MinimaxPlayer_03):
         
         return points
     
-    def minimax(self, game: Chess, depth: int, alpha=float('-inf'), beta=float('inf')) -> int:
+    def minimax(self, game: Chess, depth: int, alphabeta: list[int|float] = [float('-inf'), float('inf')]) -> int:
         if depth == 0 or game.checkResult() != 0:
             value = self.gameValue(game)
             return value
@@ -192,17 +192,17 @@ class MinimaxPlayer_04(MinimaxPlayer_03):
             value = float('-inf') 
             for move in game.getMoves():
                 newGame = game.makeMove(*move)
-                value = max(value, self.minimax(newGame, depth-1, alpha, beta))
-                alpha = max(alpha, value)
-                if alpha >= beta:
+                value = max(value, self.minimax(newGame, depth-1, alphabeta))
+                alphabeta[0] = max(alphabeta[0], value)
+                if alphabeta[0] >= alphabeta[1]:
                     break
         else:
             value = float('inf')
             for move in game.getMoves():
                 newGame = game.makeMove(*move)
-                value = min(value, self.minimax(newGame, depth-1, alpha, beta))
-                beta = min(beta, value)
-                if alpha >= beta:
+                value = min(value, self.minimax(newGame, depth-1, alphabeta))
+                alphabeta[1] = min(alphabeta[1], value)
+                if alphabeta[0] >= alphabeta[1]:
                     break
         return value
     
