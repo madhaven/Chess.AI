@@ -21,15 +21,15 @@ class MinimaxPlayer_00(PlayerRandom):
 
     def __init__(self, depth = 1):
         self.depth = depth
+        self.point_map = { 'P':1, 'N':3, 'B':3, 'R':5, 'Q':9 }
     
     def value(self, game: Chess) -> int:
         '''Provides the value of a game state by evaluating the number of takes possible.'''
-        point_map = { 'P':1, 'N':3, 'B':3, 'R':5, 'Q':9 }
         attackTargets = [move[1] for move in game.getMoves() if game.isAttackMove(move[0], move[1])]
         targetPieces = [game.pieceAt(cell) for cell in attackTargets]
         points = 0
         for piece in targetPieces:
-            pieceValue = point_map[piece[1]]
+            pieceValue = self.point_map[piece[1]]
             if piece[0] == 'w':
                 points -= pieceValue
             elif piece[0] == 'b':
@@ -153,8 +153,11 @@ class MinimaxPlayer_03(Player):
         return 'Q'
 
 class MinimaxPlayer_04(MinimaxPlayer_03):
-    '''trying to implement an alpha-beta pruning this time: performance improved
-    also added a value estimation that's unbiased on which side is playing.'''
+    '''
+    trying to implement an alpha-beta pruning this time: performance improved
+    also added a value estimation that's unbiased on which side is playing.
+    Not afraid of getting taken
+    '''
 
     def __init__(self, depth):
         self.depth = depth
@@ -209,7 +212,7 @@ class MinimaxPlayer_04(MinimaxPlayer_03):
     def chooseMove(self, game: Chess) -> list:
         moves = game.getMoves()
         n = len(moves)
-        value_map = dict()
+        value_map: dict[list[list[int]], int] = dict()
         for i, move in enumerate(moves):
             print(f'thinking {(i+1)*100//n}%')
             newGame = game.makeMove(*move)

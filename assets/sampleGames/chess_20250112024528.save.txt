@@ -1,0 +1,4 @@
+Pg2-g4 Pf7-f5 Pe2-e4 Pf5xPe4 Pf2-f4 Pe4xPf3 Bf1-b5 Pf3-f2 Pf2-f1=Q Ke2-e3 Qf1-e1 Ng1-e2 Qe1xPd2 Qd2xPc2 Nb1-a3 Qc2-b3 Bc1-e3 Pe7-e5 Ne2-d4 Nb8-c6 Ra1-c1 Ng8-f6 Rc1-c3 Bf8-b4 Nd4-e2 Nf6-d5 Ph2-h4 Qd8-f6 Kf3-g3 Qf6-f1 Ne2-c1 Qf1-e1 Be3-f2 Qb3-c2 Qc2xBf2#
+Black Wins
+white: MinimaxPlayer_04(depth:20)
+black: MinimaxPlayer_04(depth:10)

@@ -1,0 +1,5 @@
+Pe2-e4 Pe7-e5 Ng1-f3 Pf7-f5 Nf3xPe5 Qd8-f6 Pd2-d4 Pd7-d5 Bf1-d3 Ng8-h6 Nb1-c3 Pc7-c6 Ph2-h3 Qf6-f7 Ne5xQf7 Bf8-e7 Nf7xRh8 Be7-g5 Bc1xBg5 Nh6-g4 Ph3xNg4 Ph7-h6 Bg5-f4 O-O Pg4xPf5 Bc8xPf5 Pe4xBf5 Rf8-e8 Bf4-e5 Re8xBe5 Pd4xRe5 Kg8-f8 Qd1-h5 Pg7-g6 Qh5xPg6 Kf8-e7 Pf5-f6 Ke7-f8 Qg6-g7 Kf8-e8 Qg7-e7#
+White Wins
+white: PlayerUI
+black: MinimaxPlayer_04(depth:10)
+Not afraid of getting taken
