@@ -3,51 +3,54 @@
 This is an attempt to design an AI to play chess.
 The idea is to train the model on sample games with itself alone. Learning by experience.
 
+* ```playChess.py``` contains all UI logic required by a human to test the game manually.  
+  This is suitable for a human player to use.  
+  Just run playChess.py to play. ![gameScreenShot](./assets/ss01.png)  
+
 * ```Chess``` class in ```Chess.py``` contains all game logic.  
-The ```Chess``` class represents an instance of the board in a game.  
-Each move made will result in a new state of the board. This could lead to a graph-like picture with each board instance being a node in the game tree.
+  The ```Chess``` class represents an instance of the board in a game.  
+  Each move made will result in a new state of the board. This could lead to a graph-like picture with each board instance being a node in the game tree.
 
-```python
-# load a game
-game = Chess()
-game = Chess.loadFrom(r'file')
+  ```python
+  # load a game
+  game = Chess()
+  game = Chess.loadFrom(r'file')
 
-# print the board to the prompt
->>> print(game)
-8|   Q             |
-7|                 |
-6| k               |
-5| p               |
-4| P   p     N   P |
-3|     P           |
-2|   R         P   |
-1|         K     R |
-   a b c d e f g h
+  # print the board to the prompt
+  >>> print(game)
+  8|   Q             |
+  7|                 |
+  6| k               |
+  5| p               |
+  4| P   p     N   P |
+  3|     P           |
+  2|   R         P   |
+  1|         K     R |
+    a b c d e f g h
 
-# find all available moves of the player
->>> allMoves = game.getMoves()
+  # find all available moves of the player
+  >>> allMoves = game.getMoves()
 
-# find default legal moves of a cell
->>> moves = game.legalMoves('a2')
+  # find default legal moves of a cell
+  >>> moves = game.legalMoves('a2')
 
-# find moves a cell could possibly attack
->>> moves = game.checkableMoves('a2')
+  # find moves a cell could possibly attack
+  >>> moves = game.checkableMoves('a2')
 
-# find moves that a piece in a particular cell(a2) could make
->>> moves = game.movesOfCell('a2')
+  # find moves that a piece in a particular cell(a2) could make
+  >>> moves = game.movesOfCell('a2')
 
-# make a move
->>> newGameState = game.makeMove('a2', 'a4')
+  # make a move
+  >>> newGameState = game.makeMove('a2', 'a4')
 
-# check what state the game is in
->>> result = game.result
+  # check what state the game is in
+  >>> result = game.result
 
-# for more help
->>> help(game)
-```
+  # for more help
+  >>> help(game)
+  ```
 
-* ```playChess.py``` contains all UI logic required by a human to test the game manually. This would be better for a casual human player to use.
-* ```Test_Chess.py``` is for use in the command line. It could load up a .save file and provide an interactive console from an instance of the game and gives control for testing.
+* ```Test_Chess.py``` is for use in the command line. It could load up a .save file and provide an interactive console from an instance of the game and gives control for testing.  
 * The assets folder contain sample games for the test to load and also images of pieces for the game to use.
 
 ## History
