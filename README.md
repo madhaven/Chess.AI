@@ -52,7 +52,7 @@ game = Chess.loadFrom(r'file')
 
 ## History
 
-I began the project with the intention of implementing Regressive Learning on the Chess board.  
+I began the project with the intention of implementing Reinforcement Learning on the Chess board.  
 
 * A form of representation of a chess game was necassary.  
   This is how the Chess class was born.  

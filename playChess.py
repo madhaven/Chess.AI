@@ -408,7 +408,11 @@ def gameMenu(white: Player, black: Player):
 
 if __name__ == '__main__':
     white, black = [
-        PlayerUI(),
-        MinimaxPlayer_04(3),
+        # PlayerUI(),
+        # MinimaxPlayer_04_t(3, 20),
+        MinimaxPlayer_04_01(3),
+        MinimaxPlayer_04_01(2),
+        # PlayerUI(),
     ]
+    # main(Chess.loadFrom('./assets/sampleGames/chess_promotionTest.save.txt'))
     gameMenu(white, black)

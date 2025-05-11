@@ -1,3 +1,4 @@
+import threading
 from Chess import Chess, Player
 from Players import PlayerRandom
 from random import choice
@@ -223,4 +224,163 @@ class MinimaxPlayer_04(MinimaxPlayer_03):
         print(f'{min(values)}-{max(values)}:{best_value}',
             *[f'{game.notation(move[0])}-{game.notation(move[1])}' for move in best_moves])
         best_move = choice(best_moves)
-        return best_move
+        return best_move #, value_map
+
+class MinimaxPlayer_04_01(MinimaxPlayer_04):
+    '''improvements to game value'''
+
+    def __init__(self, depth):
+        self.depth = depth
+        self.value_cache = dict()
+    
+    def minimax(self, game: Chess, depth: int, alphabeta: list[int|float] = [float('-inf'), float('inf')]) -> int:
+        if game.checkResult() != 0 or depth == 0:
+            return self.gameValue(game)
+        
+        if game.isWhitesMove:
+            value = float('-inf')
+            for move in game.getMoves():
+                newGame = game.makeMove(*move)
+                value = max(value, self.minimax(newGame, depth-1, alphabeta))
+                if value >= alphabeta[1]:
+                    break
+                alphabeta[0] = max(alphabeta[0], value)
+        else:
+            value = float('inf')
+            for move in game.getMoves():
+                newGame = game.makeMove(*move)
+                value = min(value, self.minimax(newGame, depth-1, alphabeta))
+                if value <= alphabeta[0]:
+                    break
+                alphabeta[1] = min(alphabeta[1], value)
+        return value
+    
+    def gameValue(self, game: Chess) -> int:        
+        points = 0
+
+        # checkmate score
+        result = game.checkResult()
+        if result == 1:
+            return 1e6
+        elif result == -1:
+            return -1e6
+
+        # opportunity score
+        attackTargets = [ move[1] for move in game.getMoves() if game.isAttackMove(*move) ]
+        piecesForTakes = [ game.pieceAt(cell) for cell in attackTargets ]
+        points += sum([game.piecePoints(piece) for piece in piecesForTakes]) or 0
+
+        # points for previous take
+        if game.history:
+            lastMove = game.gameString.split()[-1]
+            if 'x' in lastMove:
+                piece = ("w" if game.isWhitesMove else "b") + lastMove.split('x')[1][0]
+                points += (game.piecePoints(piece) * 100)
+        
+        return points
+    
+    def chooseMove(self, game: Chess) -> list:
+        moves = game.getMoves()
+        n = len(moves)
+        value_map: dict[list[list[int]], int] = dict()
+        for i, move in enumerate(moves):
+            print(f'thinking {(i+1)*100//n}%')
+            newGame = game.makeMove(*move)
+            value_map[move] = self.minimax(newGame, self.depth-1)
+        
+        values = set(value_map.values())
+        min_val = min(values)
+        max_val = max(values)
+        best_value = max_val if game.isWhitesMove else min_val
+        best_moves = [move for move in value_map if value_map[move] == best_value]
+        print(f'{min_val}-{max_val}:{best_value}',
+            *[f'{game.notation(move[0])}-{game.notation(move[1])}' for move in best_moves])
+        best_move = choice(best_moves)
+        return best_move #, value_map
+
+class MinimaxPlayer_04_t(MinimaxPlayer_04):
+
+    def __init__(self, depth, maxThreads):
+        self.depth = depth
+        self.maxThreads = maxThreads
+        self.ioLock = threading.Lock()
+    
+    def minimax(self, game: Chess, depth: int) -> int:
+        if depth == 0 or game.checkResult() != 0:
+            value = self.gameValue(game)
+            return value
+        
+        if game.isWhitesMove:
+            value = float('-inf')
+            for move in game.getMoves():
+                newGame = game.makeMove(*move)
+                value = max(value, self.minimax(newGame, depth-1))
+        else:
+            value = float('inf')
+            for move in game.getMoves():
+                newGame = game.makeMove(*move)
+                value = min(value, self.minimax(newGame, depth-1))
+        return value
+    
+
+    def chooseMove(self, game: Chess) -> list:
+        def threadWork(game: Chess, map, move, i, n):
+            with self.ioLock:
+                print(f't{i} active')
+            newGame = game.makeMove(*move)
+            map[move] = self.minimax(newGame, self.depth - 1)
+            with self.ioLock:
+                print(f't{i} complete, {(i+1)*100//n}%')
+
+        value_map: dict[list[list[int]], int] = dict()
+        threads: list[threading.Thread] = []
+        moves = game.getMoves()
+        n = len(moves)
+        i = 0
+        while i < n:
+            if len(threads) >= self.maxThreads:
+                threads[0].join()
+                threads.pop(0)
+                continue
+            
+            try:
+                thread = threading.Thread(target=threadWork, daemon=True, args=(game, value_map, moves[i], i, n))
+                threads.append(thread)
+                thread.start()
+                i += 1
+            except: pass
+        
+        for thread in threads:
+            thread.join()
+
+        values = set(value_map.values())
+        best_value = max(values) if game.isWhitesMove else min(values)
+        best_moves = [move for move in value_map if value_map[move] == best_value]
+        print(f'{min(values)}-{max(values)}:{best_value}',
+            *[f'{game.notation(move[0])}-{game.notation(move[1])}' for move in best_moves])
+        best_move = choice(best_moves)
+        return best_move #, value_map
+
+    def gameValue(self, game: Chess) -> int:
+        points = 0
+
+        # checkmate score
+        result = game.checkResult()
+        if result == 1:
+            return 1e6
+        elif result == -1:
+            return -1e6
+
+        # opportunity score        
+        attackTargets = [ move[1] for move in game.getMoves('w' if game.isWhitesMove else 'b') if game.isAttackMove(*move) ]
+        piecesForTakes = [ game.pieceAt(cell) for cell in attackTargets ]
+        points += sum([game.piecePoints(piece) for piece in piecesForTakes]) or 0
+
+        # points for previous take
+        if game.history:
+            lastMove = game.gameString.split()[-1]
+            if 'x' in lastMove:
+                piece = ("w" if game.isWhitesMove else "b") + lastMove.split('x')[1][0]
+                points += (game.piecePoints(piece) * 2)
+        
+        return points
