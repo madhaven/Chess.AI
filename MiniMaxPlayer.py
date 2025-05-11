@@ -38,7 +38,7 @@ class MinimaxPlayer_00(PlayerRandom):
 
     def max_move(self, game: Chess):
         moves = game.getMoves()
-        value_map = { move: self.value(game.makeMove(move[0], move[1]))
+        value_map = { move: self.value(game.makeMove(*move))
             for move in moves }
         values = value_map.values()
         best_value = max(values) if game.isWhitesMove else min(values)
@@ -59,14 +59,14 @@ class MinimaxPlayer_01(MinimaxPlayer_00):
             return self.value(game)
 
         moves = game.getMoves()
-        value_map = { move: self.minimax(game.makeMove(move[0], move[1]), depth-1) for move in moves }
+        value_map = { move: self.minimax(game.makeMove(*move), depth-1) for move in moves }
         values = value_map.values()
         best_value = max(values) if game.isWhitesMove else min(values)
         return best_value
     
     def chooseMove(self, game: Chess) -> list:
         moves = game.getMoves()
-        value_map = { move: self.minimax(game.makeMove(move[0], move[1])) for move in moves }
+        value_map = { move: self.minimax(game.makeMove(*move)) for move in moves }
         values = value_map.values()
         best_value = max(values) if game.isWhitesMove else min(values)
         best_moves = [move for move in value_map if value_map[move] == best_value]
